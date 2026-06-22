@@ -1,6 +1,7 @@
 ---
 name: cbre-property-longlist
-description: Build a self-contained, CBRE-branded interactive HTML property LONGLIST DASHBOARD for Industrial & Logistics occupiers from raw market inputs. Ingests a folder of property materials (landlord/agent emails, Excel availability sheets, PPTX and PDF brochures, images) and structures them into ONE portable .html file (a filterable card grid, comparison, a Leaflet map and detail modals) visually identical to the CBRE reference, plus an auditable Source Ledger and a Gaps Report. Every field traces to a source and unknowns show as 'tbd', never invented; generalised per project via project.yaml, reusable across clients. Use whenever the user wants to build a longlist, build the property longlist, create the property dashboard, make the options HTML, a shortlist dashboard, a longlist of options, or turn a folder of brochures/emails into a dashboard. Trigger even when the need is only described (turn this folder of options into the usual dashboard; make the CBRE options page for client X).
+description: >-
+  Turns a messy folder of property materials (landlord and agent emails, Excel availability sheets, PDF and PowerPoint brochures, images) into one polished, CBRE-branded, interactive HTML longlist dashboard: a filterable card grid, a map, side-by-side comparison, and detail views, plus an auditable source ledger and a gaps report. Every field traces back to a source, and anything unknown shows as 'tbd' rather than being invented. Use it whenever you want to build a longlist or property longlist, create a property or options dashboard, make a shortlist dashboard, or turn a folder of brochures and emails into a CBRE options page for a client.
 ---
 
 # CBRE Property Longlist

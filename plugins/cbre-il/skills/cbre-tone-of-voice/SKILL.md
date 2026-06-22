@@ -1,6 +1,7 @@
 ---
 name: cbre-tone-of-voice
-description: The canonical CBRE tone-of-voice system (Clear / Bold / Connected) distilled from CBRE's official 2021 Tone of Voice Guidelines. Use whenever you write, draft, edit, polish, or review outward-facing CBRE prose — deck copy, headlines, report narrative, executive summaries, client emails, pitches, LinkedIn / social posts, thought leadership, market commentary, or any words that go out under the CBRE brand. Trigger on "make this sound like CBRE", "apply CBRE tone of voice", "in CBRE's voice", "brand voice check", or when a CBRE deliverable's copy is being authored. This skill is also the shared reference that other CBRE skills (cbre-corporate-pptx, cbre-il-account-briefing, account-plan, cold-outreach-email) read at drafting time — it is the single source of truth for CBRE voice, applied while copy is written, not as an after-the-fact pass.
+description: >-
+  Helps you write and review any outward-facing CBRE copy in the official CBRE voice (Clear, Bold, Connected), distilled from CBRE's 2021 Tone of Voice Guidelines. Use it whenever you write, draft, edit, or polish CBRE prose (deck copy, headlines, report narrative, executive summaries, client emails, pitches, social posts, thought leadership, market commentary), or when someone asks to "make this sound like CBRE", "apply CBRE tone of voice", or run a "brand voice check". It is also the shared voice reference the other CBRE skills use while they write, so copy comes out on-brand the first time instead of needing a fix-up pass.
 ---
 
 # CBRE Tone of Voice

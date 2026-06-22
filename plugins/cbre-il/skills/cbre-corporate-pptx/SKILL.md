@@ -1,7 +1,7 @@
 ---
 name: cbre-corporate-pptx
 description: >-
-  Build CBRE-branded PowerPoint decks (.pptx) for client pitches, advisory reports, investor decks, market overviews, capital-strategy memos, and any other corporate deliverable that should look like an in-house CBRE deck. Trigger when the user asks for a "CBRE deck", "CBRE slides", "CBRE-branded presentation", "client pitch in CBRE style", references a CBRE template, or asks for a polished pptx that needs CBRE typography (Financier Display serif + Calibre sans), colours (dark green, mint, bright-green accent, gold), and the editorial layout philosophy of the "CBRE - Slides I like" reference deck (eyebrow + serif headline, dense card grids, mint-headed tables, KPI strips, callouts, alternating dark/light backgrounds, max 30% whitespace). Builds story-led by default: the storyline drives each slide's layout via a scene composer (declare the narrative as scenes of rows and cells), not fixed recipes. Output is a single .pptx file built by a Python script.
+  Builds a polished, fully CBRE-branded PowerPoint deck (.pptx) from your content — the right CBRE typography (Financier Display and Calibre), the brand colour palette, and a dense, editorial, story-led layout that looks like a real in-house CBRE deck rather than a generic template. Use it whenever you want a CBRE deck, CBRE slides, a CBRE-branded or client-pitch presentation, an investor deck, advisory report, market overview, or capital-strategy memo, or any time you reference a CBRE template or ask for a polished .pptx in CBRE's house style.
 ---
 
 # CBRE Corporate Deck Builder
