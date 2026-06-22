@@ -1,7 +1,7 @@
 {
   "name": "cbre-il",
-  "description": "CBRE IL skills for Claude Code. Replace this with a short description of what your CBRE skills do.",
-  "version": "0.1.0",
+  "description": "CBRE skills for Claude Code and Cowork: corporate PowerPoint decks, IL account briefings, property longlist dashboards, and CBRE tone of voice.",
+  "version": "0.2.0",
   "author": {
     "name": "Timo Baaij",
     "email": "timo.baaij@cbre.com"

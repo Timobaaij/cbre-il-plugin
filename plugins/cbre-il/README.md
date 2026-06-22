@@ -1,8 +1,20 @@
 # cbre-il
 
-CBRE IL skills for Claude Code, packaged as a plugin.
+CBRE skills for Claude Code and Cowork, packaged as a plugin.
 
-## What's in here
+## Skills
+
+| Skill | What it does |
+|-------|--------------|
+| `cbre-corporate-pptx` | Build CBRE-branded PowerPoint decks |
+| `cbre-il-account-briefing` | Build IL account briefing decks |
+| `cbre-property-longlist` | Build interactive property longlist dashboards |
+| `cbre-tone-of-voice` | Write in the CBRE voice |
+
+Each is available as `/cbre-il:<skill-name>` once the plugin is installed, and
+Claude auto-invokes them based on each skill's `description`.
+
+## Layout
 
 ```
 plugins/cbre-il/
@@ -10,18 +22,16 @@ plugins/cbre-il/
 │   └── plugin.json          # plugin manifest (name, version, author)
 └── skills/
     └── <skill-name>/
-        └── SKILL.md         # one folder per skill
+        └── SKILL.md         # one folder per skill (+ its supporting files)
 ```
 
 ## Adding a skill
 
 1. Create a folder under `skills/` named in kebab-case (e.g. `skills/lease-abstraction/`).
 2. Add a `SKILL.md` with YAML frontmatter (`name`, `description`) and markdown
-   instructions in the body. Copy `skills/example-skill/SKILL.md` as a starting point.
-3. The `description` field is what Claude uses to decide when to auto-invoke the
-   skill — make it specific about *when* to use it.
-
-Each skill becomes available as `/cbre-il:<skill-name>` once the plugin is installed.
+   instructions in the body. The `description` is what Claude uses to decide when
+   to auto-invoke the skill — make it specific about *when* to use it. If it
+   contains a colon-space, quote it or use a `>-` block scalar.
 
 ## Versioning
 

@@ -15,8 +15,10 @@ cbre-il-plugin/
 │       ├── .claude-plugin/
 │       │   └── plugin.json        # the plugin manifest
 │       ├── skills/
-│       │   └── example-skill/
-│       │       └── SKILL.md       # one folder per skill
+│       │   ├── cbre-corporate-pptx/        # CBRE-branded PowerPoint decks
+│       │   ├── cbre-il-account-briefing/   # IL account briefings
+│       │   ├── cbre-property-longlist/     # property longlist dashboards
+│       │   └── cbre-tone-of-voice/         # CBRE writing voice
 │       └── README.md
 └── README.md
 ```
@@ -37,19 +39,22 @@ Inside any Claude Code session:
 
 To update later: `/plugin marketplace update cbre` then re-install/enable.
 
-## Add your own CBRE skills
+## Add another CBRE skill
 
 1. Create a folder per skill under `plugins/cbre-il/skills/`, named in
-   kebab-case (e.g. `skills/lease-abstraction/`).
-2. Add a `SKILL.md` with frontmatter (`name`, `description`) + markdown
-   instructions. Copy `plugins/cbre-il/skills/example-skill/SKILL.md` to start.
-3. The `description` controls *when* Claude uses the skill — be specific about
-   the trigger situation and keywords.
-4. Delete `example-skill/` once you've added real skills.
-5. Bump `version` in both `plugin.json` and `marketplace.json`, then commit and push.
+   kebab-case (e.g. `skills/lease-abstraction/`), with a `SKILL.md` directly
+   inside it.
+2. The `SKILL.md` needs YAML frontmatter (`name`, `description`) + markdown
+   instructions. The `description` controls *when* Claude uses the skill — be
+   specific about the trigger situation and keywords. If the description
+   contains a colon followed by a space, quote it or use a `>-` block scalar so
+   the YAML stays valid.
+3. Bump `version` in both `plugin.json` and `marketplace.json`, then commit and push.
 
-> Tip: if you already have skills on your machine under `~/.claude/skills/`,
-> copy each skill folder into `plugins/cbre-il/skills/` and commit it here.
+> Note: build artifacts (`__pycache__/`, `*.pyc`, `.pytest_cache/`) don't belong
+> in a shared skill — the root `.gitignore` keeps them out of git commits.
+> Uploading a folder via the GitHub web UI bypasses `.gitignore`, so zip/commit
+> from a clean tree instead.
 
 ## Test locally before sharing
 

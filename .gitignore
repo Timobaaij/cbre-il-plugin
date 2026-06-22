@@ -1,0 +1,7 @@
+# Python build artifacts — never commit to a shared skill
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# transient skill run artifacts
+**/evals/_out/
