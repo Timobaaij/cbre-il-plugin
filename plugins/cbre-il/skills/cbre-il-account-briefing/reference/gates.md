@@ -43,6 +43,9 @@ Each gate appends rows to its scorecard: `check | status (pass / fix-applied / s
 ## Model/effort
 Spend the most where a wrong answer compounds: G0, G2, G4, G7, G8 are Opus at High effort; G1b Opus medium; G6b Sonnet. Never step G2, G4, G7 or G8 down. The mechanical scripts gate first so the judgement agents never run against a plan that fails the free checks.
 
+## Language (multilingual runs)
+When `deck_meta.language` is not English, the deck and Meeting Brief are authored in that language (Latin-script European set only; see SKILL.md). Dispatch the **content/editorial reviewers in that language**: G0 (outline), G2 (evidence and honesty), G4 (content substance) and G8 (red-team) must read and judge the target-language prose; G6b (editorial) must judge the target-language register, applying the portable CBRE voice principles (`reference/content-and-tone.md`), not English idiom. Tell each: "the prose is in <language>; judge it in <language>." The mechanical gates are language-agnostic by construction (`personas` matches the persona answer-id tags, `reconcile`/`qa4` match shapes and dashes, not English words). **G1b (source verification) and G7 (visual render) need no language change** - G1b checks that sourced figures/quotes appear at source in their own language; G7 reads pixels. For any client-facing non-English deck, a **native-speaker review** is the final register check before delivery (the honest backstop, since Claude approximates rather than owns the brand voice in another language).
+
 ## Mechanical pre-checks (run first, in-thread)
 Before any judgement reviewer is dispatched in Stage 4, run the cheapest deterministic checks so a malformed plan never reaches a build or a reviewer:
 - `gate_runner.py validate-plan content_plan.json templates/content_plan.schema.json` - schema validity (uses `jsonschema` if installed, else a structural fallback). A plan that fails this is fixed before anything else.

@@ -2,6 +2,8 @@
 
 Synthesis turns five agents' findings into one fact base and the **analytical reads** the brief is built on. It is the reasoning hinge: the brief's quality is decided here, not in the renderer. Do not build slides from this output; hand it to the narrative outline (Stage 2.5) and the content plan (Stage 3).
 
+**Output language.** Write the analytical reads (and from here on, the narrative outline and every authored slide) in `deck_meta.language` (default English; see `content-and-tone.md`). The `fact_base.md` may stay in English as internal scaffolding, but keep each sourced figure/quote verbatim in its source language (it flows to the ledger `figure_or_quote_at_source` untranslated).
+
 ## Step 1 - Deduplicate and resolve conflicts
 - Read all five `*.findings.md` and `*.sources.csv`.
 - Deduplicate claims; keep the highest-tier source for each.

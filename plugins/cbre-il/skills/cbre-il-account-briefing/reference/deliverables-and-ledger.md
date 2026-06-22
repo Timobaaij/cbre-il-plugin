@@ -26,6 +26,8 @@ The working ledger lives at `intermediate/source_ledger.csv` (the canonical loca
 
 The references slide is the trimmed public face of this ledger (domain, tier, date, matched to `[N]`); the `.xlsx` is the full audit trail.
 
+**Multilingual runs (`deck_meta.language`).** When the brief is authored in another language, translation applies to the **authored** text only: the deck prose/headlines/labels/tables, the Meeting Brief, and the ledger `claim` column are written in the target language. The **source-verbatim** fields are NEVER translated: `figure_or_quote_at_source` stays exactly as it appears at source (a Danish report's "150 lagre" stays "150 lagre"), as do `source_url`, dates, tiers and `claim_id`. That preserves the audit trail. The renderer chrome (the references slide's "Sources"/tier label, the cover, the footer) is localised automatically from `build_deck.py`'s `STRINGS` table; the reader-facing tier label is localised while the tier *number* is unchanged.
+
 ## 3. The Meeting Brief
 `<Company>_Meeting_Brief.md` - the one-page conversation-prep sheet. It is what the person walking into the meeting reads. Three sections:
 - **Probe in the meeting** - the intelligence gaps phrased as opening questions (owned vs leased split, current lease maturity, S&LB intent, the permanent real-estate head, etc.), each with the Phase 1 action that closes it.

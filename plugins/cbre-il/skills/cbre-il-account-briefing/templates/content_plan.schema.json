@@ -24,7 +24,9 @@
         "audience": {"type": "string"},
         "date": {"type": "string"},
         "prepared_by": {"type": "string"},
-        "meeting_context": {"type": "string"}
+        "meeting_context": {"type": "string"},
+        "language": {"type": "string",
+          "description": "Output language for authored content (deck + Meeting Brief). IETF code or name; default English. Renderer chrome is localised via build_deck STRINGS; sourced figures/quotes stay verbatim in the source language."}
       }
     },
     "slides": {

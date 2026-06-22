@@ -1,7 +1,6 @@
 ---
 name: cbre-il-account-briefing
-description: >-
-  Produces a board-ready CBRE Industrial & Logistics account brief on a target company: who they are and what drives them (strategy, business model, financials, competitive position), how their supply chain works, and what that means for their real estate, stakeholders, and property moves. You get a CBRE-branded deck, a meeting brief, and a fully sourced ledger, with every claim traced to a real source. Use it whenever you want a CBRE I&L account brief, account plan, target pack, or executive brief on a retailer, manufacturer, distributor, e-commerce, or omnichannel business, or when prepping to meet a target's head of supply chain, logistics, property, or real estate (for example "prep me for X" or "build a target brief on X").
+description: Produce a dense CBRE Industrial & Logistics (I&L) ACCOUNT BRIEF on a target company that preps a real conversation. A C-suite-credible brief covering who the company is and what drives it (strategy, business model, multi-year financials, competitive position, challenges), how the supply chain works, how those challenges translate into real estate, property set-up, stakeholders, and movements. Runs an eight-stage pipeline with independent, shift-left QA and ships three artefacts (a CBRE-branded deck, a Source Ledger, and a Meeting Brief), every claim traced to a real source. Use whenever the user asks to run the account plan or one click account plan on a company, wants a CBRE I&L briefing, target pack, account brief, or executive brief on a retailer, manufacturer, distributor, e-commerce, or omnichannel business, or is prepping to meet a target head of supply chain, logistics, property, or real estate. Trigger even when the user only describes the need (prep me for X, build a target brief on X).
 ---
 
 # CBRE I&L Account Briefing
@@ -25,6 +24,7 @@ Three deliverables, every time, in `deliverables/`:
 
 Collect these before running; validate them in Stage 0 and write `variables.yaml` (scaffold in `templates/variables.yaml`).
 **Required:** company name (exact legal entity); today's date; company type (RETAILER / MANUFACTURER / B2B DISTRIBUTOR / E-COMMERCE / OMNICHANNEL / OTHER); geographic focus.
+**Output language** (ask at the start, default English): the language the deck and Meeting Brief are written in. Supported set is **Latin-script European** (English, German, French, Dutch, Spanish, Italian, Portuguese, Polish, Czech, Slovak, Danish, Swedish, Norwegian, Finnish). If a non-Latin-script language is requested (Cyrillic, Greek, CJK, Arabic/Hebrew), **stop and say it is not yet supported** (the fonts and the layout engine are Latin-only). Sources are read in whatever language they are in; only the AUTHORED text is written in the chosen language, and sourced figures/quotes stay verbatim in their own language.
 **Strongly recommended:** trigger for interest; known stakeholders; existing CBRE relationship; meeting context (who and when, to order the Meeting Brief).
 
 ## The pipeline - eight stages, shift-left, independently reviewed
@@ -32,7 +32,7 @@ Collect these before running; validate them in Stage 0 and write `variables.yaml
 The contract between stages is the same: findings pass **with source records attached**, written to files on disk. The Orchestrator (this thread) owns the single Source Ledger, dispatches the independent reviewers, adjudicates their verdicts, and assembles the deliverables. Full detail in `reference/agent-architecture.md` and `reference/gates.md`.
 
 ### Stage 0 - Orchestrator
-Validate variables; build the research plan; dispatch the five research agents; hold and merge the Source Ledger; run Synthesis & Analysis; write the narrative outline; assemble the content plan; dispatch the pre-build reviewers and fix every defect; run the Build; dispatch the post-build reviewers; run the Final Gate; assemble the deliverables.
+Validate variables (including `language`: confirm it is in the supported Latin-script set, else stop and say so; default English; carry it into `content_plan.json` `deck_meta.language` so the renderer localises its chrome and the reviewers judge in-language); build the research plan; dispatch the five research agents; hold and merge the Source Ledger; run Synthesis & Analysis; write the narrative outline; assemble the content plan; dispatch the pre-build reviewers and fix every defect; run the Build; dispatch the post-build reviewers; run the Final Gate; assemble the deliverables.
 
 ### Stage 1 - Research agents (five, parallel)
 Dispatch R1-R5 as real parallel sub-agents, each with its own context window and a single slice (`reference/research-question-bank.md`). Each fetches the company IR page first and returns a structured findings file plus a source record for every claim (`templates/findings_schema.md`). An agent that cannot find something returns an explicit gap, never a guess. Agents emit `*.sources.csv`; the Orchestrator merges with `helpers/ledger.py merge`.
@@ -77,7 +77,7 @@ Export the Source Ledger to `.xlsx`; write the Meeting Brief, ordered by meeting
 - `reference/opportunity-classification.md` - the OPTIONAL forecast/opportunity module (off by default).
 
 ## User preferences (always)
-- UK English. No em or en dashes anywhere.
+- Write in the chosen output language (`deck_meta.language`, default English; UK English when English). Sourced figures/quotes stay verbatim in their source language. No em or en dashes anywhere, in any language.
 - Honesty over rhetoric: struck claims, intel gaps, thin sources and incumbents (e.g. an incumbent facilities-management provider) are reported straight, never smoothed over.
 - Lead with the "so what". Every slide is dense and carries an I&L inference, not a fact dump.
 - It is an intelligence brief, not a pitch: no generic recommendations; any CBRE-relevance angle is tied to a specific, sourced fact.

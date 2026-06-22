@@ -7,6 +7,11 @@ company_name: ""          # exact legal trading entity; disambiguate shared name
 today_date: ""            # ISO date, anchors time-sensitive research (lease expiries, recent results)
 company_type: ""          # RETAILER | MANUFACTURER | B2B DISTRIBUTOR | E-COMMERCE | OMNICHANNEL | OTHER
 geographic_focus: ""      # region or "global". e.g. "Focus detail on Europe; summarise other regions at headline level."
+language: "English"       # output language for the deck + Meeting Brief. Default English.
+                          # Supported (Latin-script European): English, German, French, Dutch, Spanish,
+                          # Italian, Portuguese, Polish, Czech, Slovak, Danish, Swedish, Norwegian, Finnish.
+                          # Sources stay in their own language; only AUTHORED text is written in this language.
+                          # Non-Latin scripts (Cyrillic/Greek/CJK/Arabic) are NOT supported - stop and say so.
 
 # --- Strongly recommended ---
 trigger_for_interest: ""  # why now? e.g. "Announced European expansion", "Lease expiries in Germany", "Proactive target, no trigger"

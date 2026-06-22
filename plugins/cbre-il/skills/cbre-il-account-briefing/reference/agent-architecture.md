@@ -6,7 +6,7 @@ The pipeline runs in eight stages. The governing principles are **separation of 
 
 - **Orchestrator (this thread).** Owns the research plan, the single Source Ledger, conflict adjudication at synthesis, the narrative outline and content plan, the deterministic gate scripts, adjudication of every independent reviewer's verdict (fix / strike / deviate-with-reason), the build, and assembly. It **authors** the plan, so it never **certifies** a judgement review of that plan.
 - **Research sub-agents R1-R5.** Parallel, single-slice, fresh context. Emit findings + `*.sources.csv`; never edit the ledger.
-- **Independent reviewers (isolated sub-agents, fresh context).** G0 outline, G1b source verification, G2 evidence & honesty, G4 content substance, G6b editorial, G7 visual render, G8 red-team. Each returns a verdict and defect rows; **none edits the artefact**.
+- **Independent reviewers (isolated sub-agents, fresh context).** G0 outline, G1b source verification, G2 evidence & honesty, G4 content substance, G6b editorial, G7 visual render, G8 red-team. Each returns a verdict and defect rows; **none edits the artefact**. On a non-English run (`deck_meta.language`), dispatch G0/G2/G4/G6b/G8 to judge the prose **in that language**; G1b and G7 are language-agnostic (see `gates.md` §Language).
 
 ## Model and effort assignment
 

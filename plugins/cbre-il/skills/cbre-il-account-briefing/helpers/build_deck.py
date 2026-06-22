@@ -44,12 +44,7 @@ from pathlib import Path
 _EMU_PER_IN = 914400.0
 
 # Locate the cbre-corporate-pptx build library without a hardcoded user path.
-# Works as a plugin (sibling skill under the same plugin root), as a standalone
-# ~/.claude/skills install, or via the CLAUDE_PLUGIN_ROOT / CBRE_PPTX_SCRIPTS env vars.
-_SIBLING = Path(__file__).resolve().parents[2] / "cbre-corporate-pptx" / "scripts"
-_CANDIDATES = [Path("scripts"), _SIBLING, Path.home() / ".claude/skills/cbre-corporate-pptx/scripts"]
-if os.environ.get("CLAUDE_PLUGIN_ROOT"):
-    _CANDIDATES.insert(0, Path(os.environ["CLAUDE_PLUGIN_ROOT"]) / "skills" / "cbre-corporate-pptx" / "scripts")
+_CANDIDATES = [Path("scripts"), Path.home() / ".claude/skills/cbre-corporate-pptx/scripts"]
 if os.environ.get("CBRE_PPTX_SCRIPTS"):
     _CANDIDATES.insert(0, Path(os.environ["CBRE_PPTX_SCRIPTS"]))
 for _p in _CANDIDATES:
@@ -58,7 +53,7 @@ for _p in _CANDIDATES:
         break
 else:
     raise SystemExit("cbre-corporate-pptx scripts not found; set CBRE_PPTX_SCRIPTS "
-                     "or install the sibling cbre-corporate-pptx skill.")
+                     "or install the sibling skill at ~/.claude/skills/cbre-corporate-pptx.")
 import build  # noqa: E402
 
 # Fail loudly if the sibling library drifted (a renamed/removed symbol we rely on).
@@ -74,6 +69,157 @@ from build import COLORS as C, FONTS as Fz, ED_X, ED_W, ED_SAFE_BOT, SLIDE_W  # 
 
 # Cell kinds the renderer can draw (used by gate_runner self-check against the schema).
 CELL_KINDS = {"prose", "stat", "list", "table", "panel", "quote", "heading", "rule"}
+
+# ---------------------------------------------------------------------------
+# Localisation (multilingual output). Only the RENDERER-GENERATED chrome lives here;
+# author-supplied fields (eyebrows, headlines, subtitle, contents, all body text) are
+# localised by being written in-language in the content plan. Scope: Latin-script
+# European. deck_meta.language (name or IETF code) selects the table; missing keys and
+# unknown languages fall back to English. Sourced figures/quotes stay verbatim (never
+# translated) - that is the audit trail.
+# ---------------------------------------------------------------------------
+_LANG_ALIASES = {
+    "english": "en", "en": "en",
+    "german": "de", "deutsch": "de", "de": "de",
+    "french": "fr", "francais": "fr", "français": "fr", "fr": "fr",
+    "dutch": "nl", "nederlands": "nl", "nl": "nl",
+    "spanish": "es", "espanol": "es", "español": "es", "es": "es",
+    "italian": "it", "italiano": "it", "it": "it",
+    "portuguese": "pt", "portugues": "pt", "português": "pt", "pt": "pt",
+    "polish": "pl", "polski": "pl", "pl": "pl",
+    "czech": "cs", "cesky": "cs", "čeština": "cs", "cs": "cs",
+    "slovak": "sk", "slovensky": "sk", "slovenčina": "sk", "sk": "sk",
+    "danish": "da", "dansk": "da", "da": "da",
+    "swedish": "sv", "svenska": "sv", "sv": "sv",
+    "norwegian": "nb", "norsk": "nb", "nb": "nb", "no": "nb",
+    "finnish": "fi", "suomi": "fi", "fi": "fi",
+}
+
+STRINGS = {
+    "en": {"account_brief": "CBRE I&L ACCOUNT BRIEF", "il_cover_eyebrow": "CBRE | INDUSTRIAL & LOGISTICS",
+           "references_eyebrow": "REFERENCES", "sources_title": "Sources", "tier": "tier",
+           "whats_inside": "WHAT'S INSIDE", "subtitle_default": "Industrial & Logistics Account Brief",
+           "prepared_by_default": "CBRE Industrial & Logistics",
+           "intel_gap_title": "INTEL GAP", "intel_gap_tag": "FIRST MEETING",
+           "intel_gap_note": "Not yet captured; a priority intel gap for the first meeting.",
+           "references_fallback": "Reference list generated from the Source Ledger at delivery.",
+           "confidential": "Confidential & Proprietary | (c) 2026 CBRE, Inc."},
+    "de": {"account_brief": "CBRE I&L ACCOUNT-BRIEFING", "il_cover_eyebrow": "CBRE | INDUSTRIE & LOGISTIK",
+           "references_eyebrow": "QUELLEN", "sources_title": "Quellen", "tier": "Stufe",
+           "whats_inside": "INHALT", "subtitle_default": "Industrie & Logistik Account-Briefing",
+           "prepared_by_default": "CBRE Industrie & Logistik",
+           "intel_gap_title": "INFORMATIONSLÜCKE", "intel_gap_tag": "ERSTES TREFFEN",
+           "intel_gap_note": "Noch nicht erfasst; eine vorrangige Informationslücke für das erste Treffen.",
+           "references_fallback": "Quellenliste wird bei Lieferung aus dem Source Ledger erstellt.",
+           "confidential": "Vertraulich & urheberrechtlich geschützt | (c) 2026 CBRE, Inc."},
+    "sk": {"account_brief": "CBRE I&L PREHĽAD KLIENTA", "il_cover_eyebrow": "CBRE | PRIEMYSEL A LOGISTIKA",
+           "references_eyebrow": "ZDROJE", "sources_title": "Zdroje", "tier": "úroveň",
+           "whats_inside": "OBSAH", "subtitle_default": "Prehľad klienta pre priemysel a logistiku",
+           "prepared_by_default": "CBRE Priemysel a logistika",
+           "intel_gap_title": "CHÝBAJÚCA INFORMÁCIA", "intel_gap_tag": "PRVÉ STRETNUTIE",
+           "intel_gap_note": "Zatiaľ nezistené; prioritná informačná medzera pre prvé stretnutie.",
+           "references_fallback": "Zoznam zdrojov sa vygeneruje zo Source Ledger pri dodaní.",
+           "confidential": "Dôverné a chránené | (c) 2026 CBRE, Inc."},
+    "fr": {"account_brief": "CBRE I&L NOTE CLIENT", "il_cover_eyebrow": "CBRE | INDUSTRIE & LOGISTIQUE",
+           "references_eyebrow": "RÉFÉRENCES", "sources_title": "Sources", "tier": "niveau",
+           "whats_inside": "SOMMAIRE", "subtitle_default": "Note client Industrie & Logistique",
+           "prepared_by_default": "CBRE Industrie & Logistique",
+           "intel_gap_title": "LACUNE D'INFORMATION", "intel_gap_tag": "PREMIER RENDEZ-VOUS",
+           "intel_gap_note": "Non encore renseigné ; lacune d'information prioritaire pour le premier rendez-vous.",
+           "references_fallback": "Liste des sources générée à partir du Source Ledger à la livraison.",
+           "confidential": "Confidentiel et propriété exclusive | (c) 2026 CBRE, Inc."},
+    "nl": {"account_brief": "CBRE I&L ACCOUNTBRIEFING", "il_cover_eyebrow": "CBRE | INDUSTRIE & LOGISTIEK",
+           "references_eyebrow": "BRONNEN", "sources_title": "Bronnen", "tier": "niveau",
+           "whats_inside": "INHOUD", "subtitle_default": "Accountbriefing Industrie & Logistiek",
+           "prepared_by_default": "CBRE Industrie & Logistiek",
+           "intel_gap_title": "INFORMATIELEEMTE", "intel_gap_tag": "EERSTE GESPREK",
+           "intel_gap_note": "Nog niet vastgelegd; een prioritaire informatieleemte voor het eerste gesprek.",
+           "references_fallback": "Bronnenlijst wordt bij oplevering gegenereerd uit het Source Ledger.",
+           "confidential": "Vertrouwelijk en eigendomsrechtelijk beschermd | (c) 2026 CBRE, Inc."},
+    "es": {"account_brief": "CBRE I&L INFORME DE CLIENTE", "il_cover_eyebrow": "CBRE | INDUSTRIAL Y LOGÍSTICA",
+           "references_eyebrow": "FUENTES", "sources_title": "Fuentes", "tier": "nivel",
+           "whats_inside": "CONTENIDO", "subtitle_default": "Informe de cliente de Industrial y Logística",
+           "prepared_by_default": "CBRE Industrial y Logística",
+           "intel_gap_title": "LAGUNA DE INFORMACIÓN", "intel_gap_tag": "PRIMERA REUNIÓN",
+           "intel_gap_note": "Aún no recopilado; una laguna de información prioritaria para la primera reunión.",
+           "references_fallback": "La lista de fuentes se genera a partir del Source Ledger en la entrega.",
+           "confidential": "Confidencial y propiedad exclusiva | (c) 2026 CBRE, Inc."},
+    "it": {"account_brief": "CBRE I&L SCHEDA CLIENTE", "il_cover_eyebrow": "CBRE | INDUSTRIALE E LOGISTICA",
+           "references_eyebrow": "FONTI", "sources_title": "Fonti", "tier": "livello",
+           "whats_inside": "CONTENUTO", "subtitle_default": "Scheda cliente Industriale e Logistica",
+           "prepared_by_default": "CBRE Industriale e Logistica",
+           "intel_gap_title": "LACUNA INFORMATIVA", "intel_gap_tag": "PRIMO INCONTRO",
+           "intel_gap_note": "Non ancora rilevato; una lacuna informativa prioritaria per il primo incontro.",
+           "references_fallback": "L'elenco delle fonti viene generato dal Source Ledger alla consegna.",
+           "confidential": "Riservato e di proprietà esclusiva | (c) 2026 CBRE, Inc."},
+    "pt": {"account_brief": "CBRE I&L RESUMO DE CLIENTE", "il_cover_eyebrow": "CBRE | INDUSTRIAL E LOGÍSTICA",
+           "references_eyebrow": "FONTES", "sources_title": "Fontes", "tier": "nível",
+           "whats_inside": "CONTEÚDO", "subtitle_default": "Resumo de cliente Industrial e Logística",
+           "prepared_by_default": "CBRE Industrial e Logística",
+           "intel_gap_title": "LACUNA DE INFORMAÇÃO", "intel_gap_tag": "PRIMEIRA REUNIÃO",
+           "intel_gap_note": "Ainda não recolhido; uma lacuna de informação prioritária para a primeira reunião.",
+           "references_fallback": "A lista de fontes é gerada a partir do Source Ledger na entrega.",
+           "confidential": "Confidencial e de propriedade exclusiva | (c) 2026 CBRE, Inc."},
+    "pl": {"account_brief": "CBRE I&L BRIEF KLIENTA", "il_cover_eyebrow": "CBRE | PRZEMYSŁ I LOGISTYKA",
+           "references_eyebrow": "ŹRÓDŁA", "sources_title": "Źródła", "tier": "poziom",
+           "whats_inside": "ZAWARTOŚĆ", "subtitle_default": "Brief klienta - Przemysł i Logistyka",
+           "prepared_by_default": "CBRE Przemysł i Logistyka",
+           "intel_gap_title": "LUKA INFORMACYJNA", "intel_gap_tag": "PIERWSZE SPOTKANIE",
+           "intel_gap_note": "Jeszcze nieustalone; priorytetowa luka informacyjna na pierwsze spotkanie.",
+           "references_fallback": "Lista źródeł zostanie wygenerowana ze Source Ledger przy dostarczeniu.",
+           "confidential": "Poufne i zastrzeżone | (c) 2026 CBRE, Inc."},
+    "cs": {"account_brief": "CBRE I&L PŘEHLED KLIENTA", "il_cover_eyebrow": "CBRE | PRŮMYSL A LOGISTIKA",
+           "references_eyebrow": "ZDROJE", "sources_title": "Zdroje", "tier": "úroveň",
+           "whats_inside": "OBSAH", "subtitle_default": "Přehled klienta - Průmysl a logistika",
+           "prepared_by_default": "CBRE Průmysl a logistika",
+           "intel_gap_title": "CHYBĚJÍCÍ INFORMACE", "intel_gap_tag": "PRVNÍ SCHŮZKA",
+           "intel_gap_note": "Zatím nezjištěno; prioritní informační mezera pro první schůzku.",
+           "references_fallback": "Seznam zdrojů se vygeneruje ze Source Ledger při dodání.",
+           "confidential": "Důvěrné a chráněné | (c) 2026 CBRE, Inc."},
+    "da": {"account_brief": "CBRE I&L KUNDEBRIEF", "il_cover_eyebrow": "CBRE | INDUSTRI & LOGISTIK",
+           "references_eyebrow": "KILDER", "sources_title": "Kilder", "tier": "niveau",
+           "whats_inside": "INDHOLD", "subtitle_default": "Kundebrief for Industri & Logistik",
+           "prepared_by_default": "CBRE Industri & Logistik",
+           "intel_gap_title": "INFORMATIONSHUL", "intel_gap_tag": "FØRSTE MØDE",
+           "intel_gap_note": "Endnu ikke registreret; et prioriteret informationshul til det første møde.",
+           "references_fallback": "Kildelisten genereres fra Source Ledger ved levering.",
+           "confidential": "Fortroligt og ophavsretligt beskyttet | (c) 2026 CBRE, Inc."},
+    "sv": {"account_brief": "CBRE I&L KUNDBRIEF", "il_cover_eyebrow": "CBRE | INDUSTRI & LOGISTIK",
+           "references_eyebrow": "KÄLLOR", "sources_title": "Källor", "tier": "nivå",
+           "whats_inside": "INNEHÅLL", "subtitle_default": "Kundbrief för Industri & Logistik",
+           "prepared_by_default": "CBRE Industri & Logistik",
+           "intel_gap_title": "INFORMATIONSLUCKA", "intel_gap_tag": "FÖRSTA MÖTET",
+           "intel_gap_note": "Ännu inte kartlagt; en prioriterad informationslucka inför det första mötet.",
+           "references_fallback": "Källistan genereras från Source Ledger vid leverans.",
+           "confidential": "Konfidentiellt och upphovsrättsskyddat | (c) 2026 CBRE, Inc."},
+    "nb": {"account_brief": "CBRE I&L KUNDEBRIEF", "il_cover_eyebrow": "CBRE | INDUSTRI & LOGISTIKK",
+           "references_eyebrow": "KILDER", "sources_title": "Kilder", "tier": "nivå",
+           "whats_inside": "INNHOLD", "subtitle_default": "Kundebrief for Industri & Logistikk",
+           "prepared_by_default": "CBRE Industri & Logistikk",
+           "intel_gap_title": "INFORMASJONSHULL", "intel_gap_tag": "FØRSTE MØTE",
+           "intel_gap_note": "Ennå ikke kartlagt; et prioritert informasjonshull til det første møtet.",
+           "references_fallback": "Kildelisten genereres fra Source Ledger ved levering.",
+           "confidential": "Konfidensielt og opphavsrettslig beskyttet | (c) 2026 CBRE, Inc."},
+    "fi": {"account_brief": "CBRE I&L ASIAKASKATSAUS", "il_cover_eyebrow": "CBRE | TEOLLISUUS JA LOGISTIIKKA",
+           "references_eyebrow": "LÄHTEET", "sources_title": "Lähteet", "tier": "taso",
+           "whats_inside": "SISÄLTÖ", "subtitle_default": "Teollisuuden ja logistiikan asiakaskatsaus",
+           "prepared_by_default": "CBRE Teollisuus ja logistiikka",
+           "intel_gap_title": "TIETOAUKKO", "intel_gap_tag": "ENSIMMÄINEN TAPAAMINEN",
+           "intel_gap_note": "Ei vielä selvitetty; ensisijainen tietoaukko ensimmäistä tapaamista varten.",
+           "references_fallback": "Lähdeluettelo luodaan Source Ledgeristä toimituksen yhteydessä.",
+           "confidential": "Luottamuksellinen ja suojattu | (c) 2026 CBRE, Inc."},
+}
+
+# Active output language for renderer chrome; build_deck() sets it from deck_meta.language.
+_LANG = "en"
+
+def _lang_code(name):
+    """Map a language name or IETF code (deck_meta.language) to a STRINGS key; default en."""
+    return _LANG_ALIASES.get(str(name or "").strip().lower(), "en")
+
+def _S(key):
+    """Renderer-chrome string in the active language, falling back to English per key."""
+    return STRINGS.get(_LANG, STRINGS["en"]).get(key, STRINGS["en"].get(key, ""))
 
 # ---------------------------------------------------------------------------
 # Text hygiene + size estimators
@@ -170,7 +316,7 @@ def _chrome(deck, slide, lay=None):
     lead = _clean(slide.get("lead")) if slide.get("lead") else None
     tsize = slide.get("headline_size", 30)
     ink = C["white"] if tone == "dark" else C["green"]
-    build.eyebrow(s, _clean(slide.get("eyebrow") or "CBRE I&L ACCOUNT BRIEF"),
+    build.eyebrow(s, _clean(slide.get("eyebrow") or _S("account_brief")),
                   tone=tone, x=ED_X, y=getattr(build, "ED_EYEBROW_Y", 0.55), accent="gold")
     th_pred = build.measure_text(title, size=tsize, w=ED_W, font="serif", line_spacing=1.05)
     build.serif_title(s, title, x=ED_X, y=CHROME_TITLE_Y, w=ED_W, h=th_pred,
@@ -595,10 +741,10 @@ def r_scene(deck, plan, slide, ledger):
         y = 1.2
         if slide.get("eyebrow"):
             build.eyebrow(s, _clean(slide["eyebrow"]), tone=slide.get("tone", "light"))
-        note = "Not yet captured; a priority intel gap for the first meeting."
-        build.callout(s, title="INTEL GAP", body_text=note, x=ED_X, y=y, w=ED_W,
+        note = _S("intel_gap_note")
+        build.callout(s, title=_S("intel_gap_title"), body_text=note, x=ED_X, y=y, w=ED_W,
                       h=max(1.05, build.predict_callout_h(note, w=ED_W)),
-                      tone=slide.get("tone", "light"), tag="FIRST MEETING")
+                      tone=slide.get("tone", "light"), tag=_S("intel_gap_tag"))
         return s
     lay = slide.setdefault("_lay", {})
     s, region_top, footer_top, tone = _chrome(deck, slide, lay)
@@ -650,7 +796,7 @@ def r_cover(deck, plan, slide, ledger):
     m = plan.get("deck_meta", {})
     tone = "dark"
     s = build.blank(deck, tone=tone)
-    build.eyebrow(s, _clean(slide.get("eyebrow") or "CBRE | INDUSTRIAL & LOGISTICS"),
+    build.eyebrow(s, _clean(slide.get("eyebrow") or _S("il_cover_eyebrow")),
                   tone=tone, accent="gold")
     if m.get("date"):
         build._text(s, _clean(m["date"]), x=SLIDE_W - 3.20, y=0.55, w=2.65, h=0.30,
@@ -669,13 +815,13 @@ def r_cover(deck, plan, slide, ledger):
         tsize -= 6
     build.serif_title(s, title, x=0.55, y=1.5, w=band_w, h=band_h, size=tsize,
                       tone=tone, line_spacing=1.02)
-    subtitle = _clean(slide.get("subtitle") or m.get("subtitle") or "Industrial & Logistics Account Brief")
+    subtitle = _clean(slide.get("subtitle") or m.get("subtitle") or _S("subtitle_default"))
     build.body(s, [subtitle], x=0.55, y=4.55, w=SLIDE_W - 3.0, h=0.7, size=18,
                color=C["mint"], tone=tone, line_spacing=1.3)
     contents = slide.get("contents") or []
     if contents:
         build._rect(s, 0.55, 5.55, 1.65, 0.02, fill=C["gold"])
-        build._text(s, "WHAT'S INSIDE", x=0.55, y=5.66, w=4.0, h=0.28, font=Fz["sans_sb"],
+        build._text(s, _S("whats_inside"), x=0.55, y=5.66, w=4.0, h=0.28, font=Fz["sans_sb"],
                     size=10, color=C["gold"], bold=True, uppercase=True, letter_spacing=2.2, anchor="top")
         n = min(len(contents), 4)
         cw = (SLIDE_W - 1.10) / n
@@ -687,14 +833,14 @@ def r_cover(deck, plan, slide, ledger):
                         size=12.5, color=C["white"], anchor="top", line_spacing=1.2)
     else:
         build._rect(s, 0.55, 6.45, 2.50, 0.018, fill=C["gold"])
-        build.body(s, [_clean(m.get("prepared_by", "CBRE Industrial & Logistics")), "CBRE"],
+        build.body(s, [_clean(m.get("prepared_by") or _S("prepared_by_default")), "CBRE"],
                    x=0.55, y=6.58, w=6.0, h=0.55, size=12, color=C["white"], tone=tone, line_spacing=1.3)
     return s
 
 def r_divider(deck, plan, slide, ledger):
     build.section_divider(deck, number=slide.get("number", 1),
                           title=_clean(slide.get("title", "")),
-                          eyebrow_text=_clean(slide.get("eyebrow") or "CBRE I&L ACCOUNT BRIEF"),
+                          eyebrow_text=_clean(slide.get("eyebrow") or _S("account_brief")),
                           tone=slide.get("tone", "dark"),
                           lead=_clean(slide.get("lead")) if slide.get("lead") else None,
                           items=[_clean(i) for i in slide.get("items", [])] or None)
@@ -702,13 +848,14 @@ def r_divider(deck, plan, slide, ledger):
 def r_references(deck, plan, slide, ledger):
     tone = "light"
     s = build.blank(deck, tone=tone)
-    build.eyebrow(s, "REFERENCES", accent="mint")
-    build.serif_title(s, "Sources", x=ED_X, y=0.95, w=8.0, h=1.0, size=34, tone=tone)
+    build.eyebrow(s, _S("references_eyebrow"), accent="mint")
+    build.serif_title(s, _S("sources_title"), x=ED_X, y=0.95, w=8.0, h=1.0, size=34, tone=tone)
     from ledger import reference_rows  # the canonical, de-duplicated, numbered list
-    lines = [f"[{rr['n']}] {rr['host']}  (tier {rr['tier']}, {rr['pub_date']})"
+    _tier = _S("tier")
+    lines = [f"[{rr['n']}] {rr['host']}  ({_tier} {rr['tier']}, {rr['pub_date']})"
              for rr in reference_rows(ledger)]
     if not lines:
-        lines = ["Reference list generated from the Source Ledger at delivery."]
+        lines = [_S("references_fallback")]
     n = len(lines)
     ncol = 4 if n > 60 else (3 if n > 36 else (2 if n > 16 else 1))
     per = (n + ncol - 1) // ncol
@@ -849,10 +996,16 @@ def build_deck(plan_path, out_path, ledger_path, resolve, dry_run=False, label_a
     # Capability tier for text-fit: the COM two-pass bake only corrects layout on
     # Windows + PowerPoint; everywhere else the calibrated estimate is the final word
     # (so we add the no-bake safety pads). Surface which tier ran for the build log/G7.
-    global _BAKED
+    global _BAKED, _LANG
     com_ok = bool(build._resolve_available())
     _BAKED = bool(label_and_bake and com_ok)
-    print(f"[fit] tier={'com-twopass' if _BAKED else 'calibrated-estimate'} "
+    # Output language for renderer chrome (deck_meta.language). Set before _build_once
+    # so every slide reads it; also override the shared corporate footer string (its
+    # default is English, so non-localised callers are unaffected).
+    _LANG = _lang_code(plan.get("deck_meta", {}).get("language"))
+    if hasattr(build, "FOOTER_CONFIDENTIAL"):
+        build.FOOTER_CONFIDENTIAL = _S("confidential")
+    print(f"[fit] tier={'com-twopass' if _BAKED else 'calibrated-estimate'} lang={_LANG} "
           f"(label_and_bake={label_and_bake}, com_available={com_ok})", file=sys.stderr)
     def _build_once():
         deck = build.new_deck()

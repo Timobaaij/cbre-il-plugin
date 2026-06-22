@@ -413,8 +413,11 @@ def qa3(plan_path: str, worklog_path: str) -> List[str]:
 _NUM = re.compile(r"\d")
 _TOKENS = re.compile(r"[a-z0-9%€$£]+")
 _NUMTOK = re.compile(r"\d[\d.,]*")
-# A references-slide row as build_deck renders it: "[N] domain  (tier T, date)".
-_REF_LINE = re.compile(r"^\s*\[\d+\]\s+\S+.*\(tier\s*\d", re.IGNORECASE)
+# A references-slide row as build_deck renders it: "[N] domain  (<tier-label> T, date)".
+# The tier label is localised (tier / Stufe / niveau / úroveň ...), so match the shape
+# "[N] domain ( <word> <digit>" rather than the English word, keeping reconcile's skip of
+# the ledger-derived references lines language-agnostic.
+_REF_LINE = re.compile(r"^\s*\[\d+\]\s+\S+.*\(\S+\s*\d", re.IGNORECASE)
 # Library chrome present on every slide (the copyright footer and the CBRE
 # wordmark); deterministic, not a plan claim, so reconcile skips it, the same
 # class of exclusion already applied to the ledger-derived references rows.
@@ -609,11 +612,17 @@ PERSONA_ROLES = {
 def personas(plan_path: str) -> List[str]:
     """MANDATORY persona family. The three slides 'what is on the mind of the
     CEO / CSCO (Chief Supply Chain Officer) / Head of Real Estate' must ALWAYS be
-    present in every deck (reference/deck-structure.md). Assert at least three
-    'on the mind' scene slides exist and that each of the three roles is covered,
-    matching only on those persona slides' eyebrow/headline so unrelated slides
-    (e.g. 'CHALLENGE TO REAL ESTATE') cannot satisfy the check."""
+    present in every deck (reference/deck-structure.md).
+
+    Detection is LANGUAGE-AGNOSTIC: each persona is satisfied when its answer-id
+    (persona-ceo / persona-csco / persona-head-re) is tagged via `answers` on a
+    substantive scene slide or cell - so a German or Slovak deck passes without any
+    English phrase matching. The original English text match (eyebrow/headline
+    'on the ... mind' + role) is kept as a fallback so untagged English decks still
+    pass. A persona is missing only if it is neither tagged nor text-detected."""
     plan = _load_plan(plan_path)
+    locs = _answer_locations(plan)  # answer-id -> [slide_no] on substantive slides
+    # English text fallback (untagged decks).
     mind = []
     for s in plan.get("slides", []):
         if s.get("kind", "scene") != "scene":
@@ -621,14 +630,20 @@ def personas(plan_path: str) -> List[str]:
         hay = " ".join([str(s.get("eyebrow") or ""), str(s.get("headline") or "")])
         if PERSONA_MARK.search(hay):
             mind.append(hay)
-    defects: List[str] = []
-    if len(mind) < 3:
-        defects.append(f"found {len(mind)} 'what is on the mind' persona slides; the three "
-                       "(CEO, CSCO, Head of Real Estate) are mandatory and must always be present")
     joined = " || ".join(mind)
-    for role, rx in PERSONA_ROLES.items():
-        if not rx.search(joined):
-            defects.append(f"mandatory persona set is missing the '{role}' slide")
+    role_rx = {"persona-ceo": PERSONA_ROLES["CEO"],
+               "persona-csco": PERSONA_ROLES["CSCO / Chief Supply Chain Officer"],
+               "persona-head-re": PERSONA_ROLES["Head of Real Estate"]}
+    role_label = {"persona-ceo": "CEO", "persona-csco": "CSCO / Chief Supply Chain Officer",
+                  "persona-head-re": "Head of Real Estate"}
+    defects: List[str] = []
+    for pid in PERSONA_ANSWERS:
+        tagged = pid in locs
+        text_ok = bool(PERSONA_MARK.search(joined) and role_rx[pid].search(joined))
+        if not (tagged or text_ok):
+            defects.append(f"mandatory persona set is missing the '{role_label[pid]}' slide "
+                           f"(tag the slide/cell with answers ['{pid}'], or, in English, title it "
+                           "'what is on the mind of the <role>')")
     return defects
 
 
