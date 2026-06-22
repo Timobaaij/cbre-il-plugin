@@ -391,8 +391,8 @@ Caveats: PowerPoint must not be open interactively on the same .pptx (it'll figh
 
 **Fallback — Claude.ai Linux sandbox (LibreOffice, approximate):**
 ```bash
-bash scripts/to_pdf.sh MyDeck.pptx
-bash scripts/to_png.sh MyDeck.pptx slide_imgs    # writes 01.png, 02.png, ...
+soffice --headless --convert-to pdf MyDeck.pptx
+soffice --headless --convert-to pdf --outdir slide_imgs MyDeck.pptx && pdftoppm -r 150 -png slide_imgs/MyDeck.pdf slide_imgs/slide   # writes slide-1.png, slide-2.png, ...
 ```
 
 When you fall back to LibreOffice, treat the render as a composition sanity check only — confirm structure and hierarchy, don't tune to the pixel. Tell the user a final pass in PowerPoint is mandatory before delivery.
@@ -403,8 +403,7 @@ Keep PNG output ≤2000 px wide so it stays under the multimodal image limit whe
 
 - `scripts/compose.py` — **the story-led scene composer (the default build path).** Declares a deck as slides / scenes / rows / cells and renders it via `build`. See `references/scene-composition.md`.
 - `scripts/build.py` — the CBRE visual system: primitives + recipes + palette + fonts + the render / label / autofit-bake save pass.
-- `scripts/to_pdf.ps1` / `to_pdf.sh` — render to PDF (Windows / Linux).
-- `scripts/to_png.ps1` / `to_png.sh` — render slides to PNGs (Windows / Linux).
+- Rendering for review: in Cowork run LibreOffice directly (`soffice --headless --convert-to pdf` then `pdftoppm`); see "Render to PNG / PDF for review". The Windows PowerPoint-COM wrapper scripts (`*.ps1`) and the `*.sh` wrappers are omitted from this Cowork build because the skill uploader rejects executable script files.
 - `references/scene-composition.md` — **the story-led method and the scene model (slide kinds, the cell catalogue, density rules, worked example). Read first.**
 - `references/editorial-archetypes.md` — the editorial-bold archetype catalogue (the palette a scene cell or a bespoke slide draws from): job → composition, with a worked code sketch per archetype.
 - `references/layouts.md` — parameter lists for recipe functions.
