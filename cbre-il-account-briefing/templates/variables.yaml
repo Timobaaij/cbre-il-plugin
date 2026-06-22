@@ -1,0 +1,15 @@
+# Stage 0 variables for the CBRE I&L account briefing.
+# Fill every field. Required fields are blocking; strongly-recommended fields
+# materially improve output. Write the filled copy to <Company>_briefing/variables.yaml.
+
+# --- Required ---
+company_name: ""          # exact legal trading entity; disambiguate shared names ("Pepco Group" not "Pepco")
+today_date: ""            # ISO date, anchors time-sensitive research (lease expiries, recent results)
+company_type: ""          # RETAILER | MANUFACTURER | B2B DISTRIBUTOR | E-COMMERCE | OMNICHANNEL | OTHER
+geographic_focus: ""      # region or "global". e.g. "Focus detail on Europe; summarise other regions at headline level."
+
+# --- Strongly recommended ---
+trigger_for_interest: ""  # why now? e.g. "Announced European expansion", "Lease expiries in Germany", "Proactive target, no trigger"
+known_stakeholders: ""    # names + titles if known (still verified by R4)
+existing_cbre_relationship: ""  # known history, or "Unknown, please research."
+meeting_context: ""       # who the meeting is with and when; orders the Meeting Brief

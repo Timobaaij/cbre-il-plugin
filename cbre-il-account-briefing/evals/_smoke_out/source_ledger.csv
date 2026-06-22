@@ -1,0 +1,9 @@
+claim_id,slide,claim,source_url,source_tier,figure_or_quote_at_source,source_pub_date,retrieved_date,confidence_band,binding_test,verified
+C1,2,claim 1,https://example.com/1,1,fig 1,2026-01-01,2026-06-06,High,tier,yes
+C2,2,claim 2,https://example.com/2,1,fig 2,2026-01-01,2026-06-06,High,tier,yes
+C3,2,claim 3,https://example.com/3,1,fig 3,2026-01-01,2026-06-06,High,tier,yes
+C4,3,claim 4,https://example.com/4,1,fig 4,2026-01-01,2026-06-06,High,tier,yes
+C5,3,claim 5,https://example.com/5,1,fig 5,2026-01-01,2026-06-06,High,tier,yes
+C6,4,claim 6,https://example.com/6,1,fig 6,2026-01-01,2026-06-06,High,tier,yes
+C7,4,claim 7,https://example.com/7,1,fig 7,2026-01-01,2026-06-06,High,tier,yes
+C8,4,claim 8,https://example.com/8,1,fig 8,2026-01-01,2026-06-06,High,tier,yes

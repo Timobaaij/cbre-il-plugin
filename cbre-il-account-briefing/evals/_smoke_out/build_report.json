@@ -1,0 +1,93 @@
+{
+  "slides": [
+    {
+      "slide_no": 1,
+      "kind": "cover",
+      "known": true,
+      "rows": 0,
+      "cells": 0,
+      "cell_kinds": [],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": 2,
+      "kind": "scene",
+      "known": true,
+      "rows": 2,
+      "cells": 4,
+      "cell_kinds": [
+        "prose",
+        "stat"
+      ],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": "A",
+      "kind": "divider",
+      "known": true,
+      "rows": 0,
+      "cells": 0,
+      "cell_kinds": [],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": 3,
+      "kind": "scene",
+      "known": true,
+      "rows": 1,
+      "cells": 1,
+      "cell_kinds": [
+        "table"
+      ],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": 4,
+      "kind": "scene",
+      "known": true,
+      "rows": 1,
+      "cells": 2,
+      "cell_kinds": [
+        "list",
+        "panel"
+      ],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": 5,
+      "kind": "scene",
+      "known": true,
+      "rows": 3,
+      "cells": 3,
+      "cell_kinds": [
+        "heading",
+        "quote",
+        "rule"
+      ],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    },
+    {
+      "slide_no": "ref",
+      "kind": "references",
+      "known": true,
+      "rows": 0,
+      "cells": 0,
+      "cell_kinds": [],
+      "unknown_cell_kinds": [],
+      "sparse": false
+    }
+  ],
+  "references": [
+    {
+      "n": 1,
+      "claim_id": "C1",
+      "domain": "example.com"
+    }
+  ]
+}

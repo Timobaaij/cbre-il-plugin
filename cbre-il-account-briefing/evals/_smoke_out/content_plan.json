@@ -1,0 +1,263 @@
+{
+  "deck_meta": {
+    "target": "Acme Corp",
+    "date": "6 June 2026",
+    "prepared_by": "CBRE I&L",
+    "subtitle": "Industrial & Logistics Account Brief | as at 2026"
+  },
+  "slides": [
+    {
+      "slide_no": 1,
+      "kind": "cover",
+      "tone": "dark",
+      "subtitle": "Industrial & Logistics Account Brief",
+      "contents": [
+        "Why now",
+        "The company",
+        "The network",
+        "What it means"
+      ]
+    },
+    {
+      "slide_no": 2,
+      "kind": "scene",
+      "tone": "dark",
+      "eyebrow": "01 | WHY NOW",
+      "headline": "Acme is consolidating, not expanding",
+      "claim_ids": [
+        "C1",
+        "C2"
+      ],
+      "confidence": "High",
+      "scene": [
+        {
+          "weight": 1.3,
+          "cells": [
+            {
+              "kind": "prose",
+              "label": "THE SITUATION",
+              "text": "Acme is mid-transformation: it is consolidating its European network into fewer, larger nodes and releasing surplus industrial assets, so near-term demand from Acme itself is shrinking rather than growing across the region.",
+              "claim_ids": [
+                "C1",
+                "C2"
+              ],
+              "confidence": "High"
+            }
+          ]
+        },
+        {
+          "weight": 0.8,
+          "cells": [
+            {
+              "kind": "stat",
+              "value": "EUR 17.8bn",
+              "label": "FY2025 sales",
+              "claim_ids": [
+                "C1"
+              ],
+              "confidence": "High"
+            },
+            {
+              "kind": "stat",
+              "value": "23",
+              "label": "sites in 11 countries",
+              "claim_ids": [
+                "C2"
+              ],
+              "confidence": "High"
+            },
+            {
+              "kind": "stat",
+              "value": "3.8 yr",
+              "label": "weighted lease term",
+              "claim_ids": [
+                "C3"
+              ],
+              "confidence": "High"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_no": "A",
+      "kind": "divider",
+      "tone": "dark",
+      "number": 1,
+      "title": "How the company works",
+      "lead": "Regionalisation shapes the footprint.",
+      "items": [
+        "Strategy",
+        "Supply chain",
+        "Network"
+      ]
+    },
+    {
+      "slide_no": 3,
+      "kind": "scene",
+      "tone": "light",
+      "eyebrow": "02 | NETWORK",
+      "headline": "A compact European network",
+      "claim_ids": [
+        "C4"
+      ],
+      "confidence": "High",
+      "scene": [
+        {
+          "weight": 1.0,
+          "cells": [
+            {
+              "kind": "table",
+              "headers": [
+                "Region",
+                "Site",
+                "What",
+                "I&L read"
+              ],
+              "rows": [
+                [
+                  "NL",
+                  "Best",
+                  "Imaging",
+                  "Flagship, sticky"
+                ],
+                [
+                  "DE",
+                  "Hamburg",
+                  "Tubes",
+                  "Centre of excellence"
+                ],
+                [
+                  "US",
+                  "Reedsville",
+                  "Ultrasound",
+                  "Reshoring"
+                ]
+              ],
+              "aligns": [
+                "left",
+                "left",
+                "left",
+                "left"
+              ],
+              "claim_ids": [
+                "C4",
+                "C5"
+              ],
+              "confidence": "High"
+            }
+          ]
+        }
+      ],
+      "lead": "Two currents: reshoring and contraction."
+    },
+    {
+      "slide_no": 4,
+      "kind": "scene",
+      "tone": "dark",
+      "eyebrow": "03 | OPERATING MODEL",
+      "headline": "Make in-house, move via third parties",
+      "claim_ids": [
+        "C6"
+      ],
+      "confidence": "High",
+      "scene": [
+        {
+          "weight": 1.0,
+          "cells": [
+            {
+              "kind": "list",
+              "numbered": true,
+              "items": [
+                {
+                  "title": "Make",
+                  "text": "Regulated in-house manufacturing across many sites."
+                },
+                {
+                  "title": "Move",
+                  "text": "Distribution outsourced to 3PLs who hold the leases."
+                },
+                {
+                  "title": "Rebalance",
+                  "text": "Rebalanced region by region as volumes shift."
+                }
+              ],
+              "claim_ids": [
+                "C6"
+              ],
+              "confidence": "High"
+            },
+            {
+              "kind": "panel",
+              "title": "THE I&L LENS",
+              "items": [
+                {
+                  "label": "Tenure",
+                  "value": "Owned core; small lease book"
+                },
+                {
+                  "label": "Governance",
+                  "value": "Reports to the CFO; EMEA team"
+                }
+              ],
+              "claim_ids": [
+                "C7",
+                "C8"
+              ],
+              "confidence": "High"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_no": 5,
+      "kind": "scene",
+      "tone": "light",
+      "eyebrow": "04 | VOICE",
+      "headline": "What leadership says",
+      "claim_ids": [
+        "C1"
+      ],
+      "confidence": "High",
+      "scene": [
+        {
+          "weight": 0.2,
+          "cells": [
+            {
+              "kind": "heading",
+              "text": "ON THE RECORD"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "cells": [
+            {
+              "kind": "rule"
+            }
+          ]
+        },
+        {
+          "weight": 1.0,
+          "cells": [
+            {
+              "kind": "quote",
+              "text": "We are consolidating to fewer, larger nodes.",
+              "attrib": "CFO, FY2025 call",
+              "claim_ids": [
+                "C2"
+              ],
+              "confidence": "High"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slide_no": "ref",
+      "kind": "references",
+      "tone": "light"
+    }
+  ]
+}
