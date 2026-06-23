@@ -245,6 +245,7 @@ market:
 output:
   filename: "CBRE_Property_Dashboard_{client}.html"
   compiled_date: ""              # ISO date; defaults to today
+  language: "English"            # Stage-0 Q3: dashboard language (orchestrator fills from the broker's answer)
 inputs:
   folder: "."
   present_types: {json.dumps(inv['present_types'])}

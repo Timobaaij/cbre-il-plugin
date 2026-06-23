@@ -12,6 +12,8 @@ Subcommands (judgement halves run as isolated reviewer sub-agents, not here):
   POST-BUILD:
     validate-html   G-html       : delivered HTML == render(canonical) byte-for-byte; blocks round-trip; chrome sha
     reconcile       G-reconcile  : every id in HTML <-> canonical; KPI strip matches the data
+    i18n            G-i18n       : rendered chrome complete (175 keys), no unfilled token, well-formed
+                                   LOCALE, no silent EN fallback for an expected-localised language, placeholders intact
   REVIEW WINDOW:
     freeze          (--check)    : snapshot/verify canonical bytes so parallel reviewers all judge the same artefact
 
@@ -97,6 +99,20 @@ def cmd_self_check(args) -> int:
     for marker in C.DATA_MARKERS.values():
         if marker not in template:
             issues.append(f"template missing data marker {marker}")
+    # v19 i18n: the template must carry the injected UI/LOCALE bootstrap (pre-render
+    # form: `const UI = {{ui_json}}` + `const LOCALE = "{{locale}}"`), and the i18n
+    # table must import with a non-empty EN baseline. Catches future template/table
+    # drift at preflight (the maintenance battery runs self-check).
+    if "const UI = {{ui_json}}" not in template:
+        issues.append("template missing the v19 i18n bootstrap (const UI = {{ui_json}})")
+    if "const LOCALE =" not in template:
+        issues.append("template missing the v19 i18n locale const (const LOCALE =)")
+    try:
+        import i18n as _I18N
+        if not getattr(_I18N, "EN", None):
+            issues.append("i18n.EN is empty (the English chrome baseline must be non-empty)")
+    except Exception as e:
+        issues.append(f"i18n import failed: {e}")
     # schema loads and is well-formed
     try:
         C.load_json(C.SCHEMA_FILE)
@@ -256,6 +272,134 @@ def cmd_reconcile(args) -> int:
         print("STATUS: BLOCKED")
         return 1
     _ok(f"reconcile clean ({len(canon_ids)} ids match; KPI strip consistent)")
+    print("STATUS: ALL-PASS")
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+# G-i18n: the DETERMINISTIC FLOOR of the localisation render-quality gate. The blind
+# LLM rubric (reference/gates.md G-i18n) is the live counterpart and runs in Cowork;
+# this floor catches the structural failure modes that don't need a reader: a missing
+# /extra chrome key, an unfilled {{token}}, a malformed LOCALE, a translation that
+# silently collapsed back to English, and a destroyed {area}/{unit} placeholder.
+
+# Invariants that legitimately stay English/verbatim in EVERY language, so a key whose
+# EN value is ONE of these (or is empty) is excluded from the silent-fallback "must
+# differ from EN" share - translating them would be wrong, not missing.
+_I18N_INVARIANT_VALUES = {"%", "tbc", "reit", "pps", "% eu27", " min", ""}
+
+
+def _parse_const_obj(html: str, name: str):
+    """Extract `const <name> = {...};` from built HTML and json.loads it (the build
+    emits compact, sorted, <,>-escaped JSON, so it round-trips). None if absent/bad."""
+    m = re.search(rf"const {name} = (\{{.*?\}});\n", html, re.DOTALL)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except Exception:
+        return None
+
+
+def _bcp47_well_formed(tag: str) -> bool:
+    """A pragmatic BCP-47 check: language[-script][-region][-variant], e.g. en-GB, de-DE,
+    nb-NO, ca-ES. We require at least a 2-3 letter primary subtag; further subtags are
+    2-3 letters/digits or a 4-letter script. Good enough to catch a malformed/empty tag
+    without pulling a full langtag library into the offline floor."""
+    if not isinstance(tag, str) or not tag.strip():
+        return False
+    parts = tag.strip().split("-")
+    if not re.fullmatch(r"[A-Za-z]{2,3}", parts[0]):
+        return False
+    for p in parts[1:]:
+        if not re.fullmatch(r"[A-Za-z]{2,4}|\d{3}|[A-Za-z0-9]{2,8}", p):
+            return False
+    return True
+
+
+def cmd_i18n(args) -> int:
+    """G-i18n deterministic floor: confirm the rendered chrome is complete, well-formed
+    and actually localised for the resolved language. Reads the built HTML + canonical."""
+    import i18n as I18N
+    issues = []
+    html = Path(args.html).read_text(encoding="utf-8")
+    data = C.load_canonical(Path(args.canonical))
+    meta = data.get("meta", {}) or {}
+    language = meta.get("language") or "en"
+    code = I18N.normalize_lang(language)
+    overrides = meta.get("ui_overrides") if isinstance(meta.get("ui_overrides"), dict) else None
+
+    # 1. const UI parses and has EXACTLY the EN key set (175) - no missing, no extra.
+    ui = _parse_const_obj(html, "UI")
+    if ui is None:
+        issues.append("const UI = {...} block missing or not valid JSON")
+    else:
+        en_keys = set(I18N.EN)
+        ui_keys = set(ui)
+        missing = sorted(en_keys - ui_keys)
+        extra = sorted(ui_keys - en_keys)
+        if missing:
+            issues.append(f"const UI is missing {len(missing)} EN key(s): {missing[:8]}")
+        if extra:
+            issues.append(f"const UI has {len(extra)} key(s) not in EN: {extra[:8]}")
+
+    # 2. No UI value contains an unfilled {{token}} (reuse find_leftover_tokens).
+    if ui is not None:
+        tok_offenders = sorted(k for k, v in ui.items()
+                               if isinstance(v, str) and C.find_leftover_tokens(v))
+        if tok_offenders:
+            issues.append(f"const UI value(s) carry an unfilled {{{{token}}}}: {tok_offenders[:8]}")
+
+    # 3. const LOCALE is a well-formed BCP-47 tag for the resolved language.
+    ml = re.search(r'const LOCALE = "([^"]*)";', html)
+    locale = ml.group(1) if ml else None
+    if locale is None:
+        issues.append("const LOCALE = \"...\"; not found in the built HTML")
+    elif not _bcp47_well_formed(locale):
+        issues.append(f"const LOCALE {locale!r} is not a well-formed BCP-47 tag")
+    else:
+        # the locale's primary subtag should match the resolved language code (e.g.
+        # 'de-DE' for de). An explicit meta.locale (de-AT) still shares the primary subtag.
+        prim = locale.split("-")[0].lower()
+        if prim != code:
+            issues.append(f"const LOCALE {locale!r} primary subtag {prim!r} != resolved "
+                          f"language code {code!r}")
+
+    # 4. Silent-fallback catch: if the resolved language is non-EN AND was EXPECTED to be
+    # localised (a bundled language, or meta.ui_overrides present), the UI must DIFFER
+    # from EN across a threshold share of the non-invariant keys - a translation that
+    # silently collapsed to English is caught here. For an UNSUPPORTED language (correctly
+    # rendered in EN) and for EN itself this check is skipped (EN is the right answer).
+    expected_localised = code != "en" and (I18N.is_bundled(code) or overrides is not None)
+    if ui is not None and expected_localised:
+        comparable = [k for k, v in I18N.EN.items()
+                      if isinstance(v, str)
+                      and str(v).strip().lower() not in _I18N_INVARIANT_VALUES]
+        differing = [k for k in comparable if ui.get(k) != I18N.EN.get(k)]
+        share = (len(differing) / len(comparable)) if comparable else 0.0
+        if share < 0.40:
+            issues.append(f"const UI differs from EN in only {share:.0%} of the "
+                          f"{len(comparable)} non-invariant keys (< 40%): the '{language}' "
+                          f"translation looks like it silently fell back to English")
+
+    # 5. The {area}/{unit} placeholders survive into the resolved UI for the format keys
+    # (compute_kpis .format()s them; a translation that dropped them would crash that).
+    if ui is not None:
+        if "{area}" not in str(ui.get("kpi_wh_area_sub_fmt", "")):
+            issues.append("kpi_wh_area_sub_fmt lost its {area} placeholder in the resolved UI")
+        if "{unit}" not in str(ui.get("kpi_rent_sub_fmt", "")):
+            issues.append("kpi_rent_sub_fmt lost its {unit} placeholder in the resolved UI")
+
+    if issues:
+        for i in issues:
+            _bad(i)
+        print(f"STATUS: BLOCKED ({len(issues)} i18n issue(s); language={language!r}, code={code!r})")
+        return 1
+    _kind = ("bundled" if I18N.is_bundled(code) and code != "en"
+             else "fallback" if overrides is not None
+             else "English" if code == "en" else "English (unsupported -> EN)")
+    _ok(f"i18n floor clean: const UI complete ({len(ui or {})} keys), LOCALE {locale!r} "
+        f"well-formed, no unfilled token, placeholders intact ({_kind} chrome for {language!r})")
     print("STATUS: ALL-PASS")
     return 0
 
@@ -607,6 +751,8 @@ def main() -> None:
     p.set_defaults(fn=cmd_validate_html)
     p = sub.add_parser("reconcile"); p.add_argument("html"); p.add_argument("--canonical", required=True)
     p.set_defaults(fn=cmd_reconcile)
+    p = sub.add_parser("i18n"); p.add_argument("html"); p.add_argument("--canonical", required=True)
+    p.set_defaults(fn=cmd_i18n)
     p = sub.add_parser("trace-coverage"); p.add_argument("canonical"); p.add_argument("--ledger", required=True)
     p.set_defaults(fn=cmd_trace_coverage)
     p = sub.add_parser("images"); p.add_argument("canonical"); p.set_defaults(fn=cmd_images)

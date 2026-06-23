@@ -43,6 +43,7 @@ import final_gate       # noqa: E402
 import gate_runner      # noqa: E402
 import ledger as L      # noqa: E402
 import merge            # noqa: E402
+import i18n as I18N     # noqa: E402
 
 FAILS: list[str] = []
 
@@ -203,6 +204,26 @@ def main() -> int:
           "P7: vision-transcribed fields are confidence Medium")
     country_gap = [r for r in rows if r["field"] == "country" and r["source_type"] == "gap"]
     check(bool(country_gap), "P4: sentinel country ('??') has its gap row")
+
+    # Phase 2: the REAL merge.main --ui-overrides bake (not a re-implemented filter). A
+    # fallback cache with every EN key translated + the _en_sha meta + a stray non-EN key
+    # must yield a canonical whose meta.ui_overrides is EXACTLY the EN key set.
+    ui_cache = work / "da_cache.json"
+    _fake = {k: ("DA_" + v if isinstance(v, str) else v) for k, v in I18N.EN.items()}
+    _fake["kpi_wh_area_sub_fmt"] = "{area} DA"; _fake["kpi_rent_sub_fmt"] = "DA {unit}"
+    _fake["_en_sha"] = I18N.en_sha(); _fake["STRAY_DATA_KEY"] = "must not enter canonical"
+    ui_cache.write_text(json.dumps(_fake, ensure_ascii=False), encoding="utf-8")
+    canonical_ui = work / "canonical_ui.json"
+    rc_ui = call(merge, "--records", *records, "--source-dir", src,
+                 "--out", canonical_ui, "--ledger", work / "ledger_ui.csv",
+                 "--language", "Danish", "--ui-overrides", ui_cache)
+    check(rc_ui == 0, "merge --ui-overrides completes")
+    meta_ui = json.loads(canonical_ui.read_text(encoding="utf-8")).get("meta", {})
+    ov = meta_ui.get("ui_overrides", {})
+    check(set(ov) == set(I18N.EN) and "_en_sha" not in ov and "STRAY_DATA_KEY" not in ov,
+          "merge --ui-overrides bakes meta.ui_overrides = EXACTLY the EN key set (stray/_en_sha dropped)")
+    check(ov.get("tab_grid") == "DA_Grid" and meta_ui.get("language") == "Danish",
+          "baked meta.ui_overrides carries the translated values + meta.language")
 
     # ----------------------------------------------------------------------- #
     # #4 - cross-source VALUE-conflict adjudication (LLM override on the exit-10
@@ -446,6 +467,17 @@ def main() -> int:
           "validate-html ALL-PASS (byte-identical chrome)")
     check(call(gate_runner, "reconcile", built, "--canonical", canonical) == 0,
           "reconcile ALL-PASS")
+    # G-i18n deterministic floor: the fixture builds English chrome, so the floor PASSES
+    # (UI complete, well-formed LOCALE, no unfilled token, placeholders intact; the
+    # silent-fallback check is skipped for EN). Then prove the gate BITES: a built file
+    # whose const UI dropped a chrome key must BLOCK.
+    check(call(gate_runner, "i18n", built, "--canonical", canonical) == 0,
+          "G-i18n floor ALL-PASS (complete EN chrome)")
+    i18n_bad = work / "built_i18n_bad.html"
+    _bad_html = built.read_text(encoding="utf-8").replace('"tab_grid":"Grid",', "", 1)
+    i18n_bad.write_text(_bad_html, encoding="utf-8")
+    check(call(gate_runner, "i18n", i18n_bad, "--canonical", canonical) != 0,
+          "G-i18n floor BLOCKS a built file whose const UI dropped a chrome key")
 
     print("Stage 7 - deliver + final gate (verdict protocol):")
     deliverables = work / "deliverables"

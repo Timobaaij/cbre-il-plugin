@@ -311,14 +311,758 @@ def replace_data_lines(text: str) -> str:
     return "".join(lines)
 
 
+# ===========================================================================
+# v19 PATCH-ONLY PATH (i18n localisation)
+# ===========================================================================
+# The raw reference HTML is not on disk (v5-v18 were patched in place), so v19 is
+# produced by patching the EXISTING frozen template - NOT a regen-from-reference.
+# Each patch asserts text.count(old) == 1 or fails loudly. Apply order is fixed:
+#   INJECT_BLOCK -> static block patches -> JS patches -> applyI18n call ->
+#   adaptSingleCountryHeader key-based fix -> format/locale patches.
+# All static chrome carries data-i18n / data-i18n-ph / data-i18n-al; JS-generated
+# chrome calls T('KEY'); the country-filter / number formatting become LOCALE-aware.
+
+# 1. The i18n bootstrap, inserted IMMEDIATELY BEFORE the unique `const ROUTES`
+#    line. {{ui_json}} is NOT quoted (a JS object literal); {{locale}} IS quoted -
+#    render() fills both. Kept as literal tokens here.
+INJECT_BLOCK_ANCHOR = 'const ROUTES = {}; // cache:'
+INJECT_BLOCK = (
+    "const UI = {{ui_json}};\n"
+    "const LOCALE = \"{{locale}}\";\n"
+    "const T = k => (UI && UI[k] != null) ? UI[k] : k;\n"
+    "function applyI18n(root){\n"
+    "  const r = root || document;\n"
+    "  r.querySelectorAll('[data-i18n]').forEach(el => { const v = UI[el.getAttribute('data-i18n')]; if(v != null) el.textContent = v; });\n"
+    "  r.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = UI[el.getAttribute('data-i18n-ph')]; if(v != null) el.setAttribute('placeholder', v); });\n"
+    "  r.querySelectorAll('[data-i18n-al]').forEach(el => { const v = UI[el.getAttribute('data-i18n-al')]; if(v != null) el.setAttribute('aria-label', v); });\n"
+    "}\n"
+)
+
+# 3. STATIC-HTML chrome -> data-i18n / data-i18n-ph / data-i18n-al, applied as a
+#    small number of LARGE unique block patches (one per contiguous region). Where
+#    an element wraps child nodes whose text must NOT be destroyed, the text is
+#    wrapped in <span data-i18n="KEY">.
+STATIC_PATCHES = [
+    # --- KPI strip (labels localised; values are the {{kpi_*}} data tokens) ----
+    (
+        '<div class="kpi"><div class="kpi-label">Properties</div><div class="kpi-value">{{kpi_properties}}</div><div class="kpi-sub">Longlist</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label">Countries</div><div class="kpi-value">{{kpi_countries}}</div><div class="kpi-sub">{{kpi_countries_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label">Regions</div><div class="kpi-value">{{kpi_regions}}</div><div class="kpi-sub">{{kpi_regions_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label">Developers</div><div class="kpi-value">{{kpi_developers}}</div><div class="kpi-sub">Major landlords</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label">Warehouse area</div><div class="kpi-value">{{kpi_wh_area}}</div><div class="kpi-sub">{{kpi_wh_area_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label">Headline rent</div><div class="kpi-value">{{kpi_rent}}</div><div class="kpi-sub">{{kpi_rent_sub}}</div></div>',
+        '<div class="kpi"><div class="kpi-label" data-i18n="kpi_properties_label">Properties</div><div class="kpi-value">{{kpi_properties}}</div><div class="kpi-sub" data-i18n="kpi_properties_sub">Longlist</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label" data-i18n="kpi_countries_label">Countries</div><div class="kpi-value">{{kpi_countries}}</div><div class="kpi-sub">{{kpi_countries_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label" data-i18n="kpi_regions_label">Regions</div><div class="kpi-value">{{kpi_regions}}</div><div class="kpi-sub">{{kpi_regions_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label" data-i18n="kpi_developers_label">Developers</div><div class="kpi-value">{{kpi_developers}}</div><div class="kpi-sub" data-i18n="kpi_developers_sub">Major landlords</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label" data-i18n="kpi_wh_area_label">Warehouse area</div><div class="kpi-value">{{kpi_wh_area}}</div><div class="kpi-sub">{{kpi_wh_area_sub}}</div></div>\n'
+        '      <div class="kpi"><div class="kpi-label" data-i18n="kpi_rent_label">Headline rent</div><div class="kpi-value">{{kpi_rent}}</div><div class="kpi-sub">{{kpi_rent_sub}}</div></div>',
+    ),
+    # --- View tabs (button wraps an <svg> + text; wrap the text in a span) -----
+    (
+        '<button id="tab-grid" class="active" onclick="switchView(\'grid\')">\n'
+        '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>\n'
+        '      Grid\n'
+        '    </button>\n'
+        '    <button id="tab-map" onclick="switchView(\'map\')">\n'
+        '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20L3 17V4l6 3 6-3 6 3v13l-6-3-6 3z"/><line x1="9" y1="7" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="17"/></svg>\n'
+        '      Map\n'
+        '    </button>',
+        '<button id="tab-grid" class="active" onclick="switchView(\'grid\')">\n'
+        '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>\n'
+        '      <span data-i18n="tab_grid">Grid</span>\n'
+        '    </button>\n'
+        '    <button id="tab-map" onclick="switchView(\'map\')">\n'
+        '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20L3 17V4l6 3 6-3 6 3v13l-6-3-6 3z"/><line x1="9" y1="7" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="17"/></svg>\n'
+        '      <span data-i18n="tab_map">Map</span>\n'
+        '    </button>',
+    ),
+    # --- Toolbar / filters (labels, search placeholder, select default options,
+    #     the size label which has a trailing &nbsp;<span> -> wrap the text) -----
+    (
+        '<label class="field-label" for="f-search">Search</label>\n'
+        '      <input type="search" id="f-search" placeholder="Park, developer, city…" autocomplete="off">',
+        '<label class="field-label" for="f-search" data-i18n="filter_search_label">Search</label>\n'
+        '      <input type="search" id="f-search" placeholder="Park, developer, city…" data-i18n-ph="filter_search_ph" autocomplete="off">',
+    ),
+    (
+        '<label class="field-label" for="f-country">Country</label>\n'
+        '      <select id="f-country"><option value="">All countries</option></select>',
+        '<label class="field-label" for="f-country" data-i18n="filter_country_label">Country</label>\n'
+        '      <select id="f-country"><option value="" data-i18n="filter_country_all">All countries</option></select>',
+    ),
+    (
+        '<label class="field-label" for="f-city">City</label>\n'
+        '      <select id="f-city"><option value="">All cities</option></select>',
+        '<label class="field-label" for="f-city" data-i18n="filter_city_label">City</label>\n'
+        '      <select id="f-city"><option value="" data-i18n="filter_city_all">All cities</option></select>',
+    ),
+    (
+        '<label class="field-label" for="f-dev">Developer</label>\n'
+        '      <select id="f-dev"><option value="">All developers</option></select>',
+        '<label class="field-label" for="f-dev" data-i18n="filter_dev_label">Developer</label>\n'
+        '      <select id="f-dev"><option value="" data-i18n="filter_dev_all">All developers</option></select>',
+    ),
+    (
+        '<label class="field-label" for="f-size">Min warehouse area &nbsp;<span id="f-size-val" class="range-value"></span></label>',
+        '<label class="field-label" for="f-size"><span data-i18n="filter_size_label">Min warehouse area</span> &nbsp;<span id="f-size-val" class="range-value"></span></label>',
+    ),
+    (
+        '<button id="f-reset" class="btn ghost">Reset</button>',
+        '<button id="f-reset" class="btn ghost" data-i18n="filter_reset">Reset</button>',
+    ),
+    # --- Result-meta + sort (count has a leading <strong>; wrap the text node;
+    #     each <option> gets data-i18n directly) -------------------------------
+    (
+        '<div class="count"><strong id="count-n">17</strong>properties shown</div>\n'
+        '    <div class="sort-wrap">\n'
+        '      <label for="sort" class="field-label" style="margin:0">Sort</label>\n'
+        '      <select id="sort">\n'
+        '        <option value="id">Recommended order</option>\n'
+        '        <option value="size-desc">Warehouse area (largest)</option>\n'
+        '        <option value="size-asc">Warehouse area (smallest)</option>\n'
+        '        <option value="rent-asc">Rent (lowest)</option>\n'
+        '        <option value="rent-desc">Rent (highest)</option>\n'
+        '        <option value="city">City (A–Z)</option>\n'
+        '        <option value="dev">Developer (A–Z)</option>\n'
+        '      </select>',
+        '<div class="count"><strong id="count-n">17</strong><span data-i18n="result_count_suffix">properties shown</span></div>\n'
+        '    <div class="sort-wrap">\n'
+        '      <label for="sort" class="field-label" style="margin:0" data-i18n="sort_label">Sort</label>\n'
+        '      <select id="sort">\n'
+        '        <option value="id" data-i18n="sort_recommended">Recommended order</option>\n'
+        '        <option value="size-desc" data-i18n="sort_size_desc">Warehouse area (largest)</option>\n'
+        '        <option value="size-asc" data-i18n="sort_size_asc">Warehouse area (smallest)</option>\n'
+        '        <option value="rent-asc" data-i18n="sort_rent_asc">Rent (lowest)</option>\n'
+        '        <option value="rent-desc" data-i18n="sort_rent_desc">Rent (highest)</option>\n'
+        '        <option value="city" data-i18n="sort_city">City (A–Z)</option>\n'
+        '        <option value="dev" data-i18n="sort_dev">Developer (A–Z)</option>\n'
+        '      </select>',
+    ),
+    # --- Empty state ---------------------------------------------------------
+    (
+        '<h3>No properties match your filters</h3>\n'
+        '      <p>Try widening the warehouse-area range or clearing a filter.</p>',
+        '<h3 data-i18n="empty_title">No properties match your filters</h3>\n'
+        '      <p data-i18n="empty_body">Try widening the warehouse-area range or clearing a filter.</p>',
+    ),
+    # --- Map legend + isochrone controls (legend-title has a trailing
+    #     <span id="legend-mode">; wrap the "Layers" text) --------------------
+    (
+        '<div class="legend-title">Layers <span id="legend-mode"',
+        '<div class="legend-title"><span data-i18n="legend_layers">Layers</span> <span id="legend-mode"',
+    ),
+    (
+        '<div class="label">Drive-time rings around focused property</div>\n'
+        '            <div class="iso-options">\n'
+        '              <button data-iso="0" class="active">Off</button>\n'
+        '              <button data-iso="30">30 min</button>\n'
+        '              <button data-iso="60">60 min</button>\n'
+        '              <button data-iso="both">Both</button>\n'
+        '            </div>\n'
+        '            <div class="dist-caveat" style="margin-top:4px">Rings show estimated reach at ~75 km/h motorway average with 1.25× winding factor. Actual routed drive times will vary.</div>',
+        '<div class="label" data-i18n="iso_label">Drive-time rings around focused property</div>\n'
+        '            <div class="iso-options">\n'
+        '              <button data-iso="0" class="active" data-i18n="iso_off">Off</button>\n'
+        '              <button data-iso="30" data-i18n="iso_30">30 min</button>\n'
+        '              <button data-iso="60" data-i18n="iso_60">60 min</button>\n'
+        '              <button data-iso="both" data-i18n="iso_both">Both</button>\n'
+        '            </div>\n'
+        '            <div class="dist-caveat" style="margin-top:4px" data-i18n="iso_caveat">Rings show estimated reach at ~75 km/h motorway average with 1.25× winding factor. Actual routed drive times will vary.</div>',
+    ),
+    # --- Compare tray --------------------------------------------------------
+    (
+        '<button class="btn ghost" id="tray-clear" style="color:#fff;border-color:rgba(255,255,255,.3)">Clear</button>\n'
+        '    <button class="btn accent" id="tray-open">Compare</button>',
+        '<button class="btn ghost" id="tray-clear" style="color:#fff;border-color:rgba(255,255,255,.3)" data-i18n="tray_clear">Clear</button>\n'
+        '    <button class="btn accent" id="tray-open" data-i18n="tray_compare">Compare</button>',
+    ),
+    # --- Lightbox aria-labels (data-i18n-al; the glyphs ×/‹/› stay as content) ---
+    (
+        '<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">\n'
+        '  <button class="lb-close" id="lb-close" aria-label="Close">×</button>\n'
+        '  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous photo">‹</button>\n'
+        '  <img class="lb-img" id="lb-img" alt="">\n'
+        '  <button class="lb-nav lb-next" id="lb-next" aria-label="Next photo">›</button>',
+        '<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" data-i18n-al="lb_photo_viewer">\n'
+        '  <button class="lb-close" id="lb-close" aria-label="Close" data-i18n-al="a11y_close">×</button>\n'
+        '  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous photo" data-i18n-al="a11y_prev_photo">‹</button>\n'
+        '  <img class="lb-img" id="lb-img" alt="">\n'
+        '  <button class="lb-nav lb-next" id="lb-next" aria-label="Next photo" data-i18n-al="a11y_next_photo">›</button>',
+    ),
+    # --- Footer disclaimer ---------------------------------------------------
+    (
+        '<div class="disclaimer">All information provided by CBRE in this document is subject to change without notice. Rent levels, availability, technical specifications, coordinates and timing are indicative, based on landlord-provided data, and subject to negotiation. Drive-time estimates are calculated from great-circle distance with a 1.25× road winding factor at a 75 km/h motorway average and are for orientation only. Not for public distribution.</div>',
+        '<div class="disclaimer" data-i18n="footer_disclaimer">All information provided by CBRE in this document is subject to change without notice. Rent levels, availability, technical specifications, coordinates and timing are indicative, based on landlord-provided data, and subject to negotiation. Drive-time estimates are calculated from great-circle distance with a 1.25× road winding factor at a 75 km/h motorway average and are for orientation only. Not for public distribution.</div>',
+    ),
+]
+
+# 4. JS-GENERATED chrome -> T('KEY') (or ${T('KEY')} inside template literals).
+#    One patch per unique enclosing construct; enough context to be unique.
+JS_PATCHES = [
+    # DIST_LABEL / DIST_BADGE objects (whole object)
+    (
+        'const DIST_LABEL = { est:"est.", car:"car", hgv:"HGV" };\n'
+        'const DIST_BADGE = { est:"Straight-line estimates - not routed", car:"Car-routed drive times (OSRM)", hgv:"HGV / truck-routed drive times (openrouteservice)" };',
+        'const DIST_LABEL = { est:T("dist_label_est"), car:T("dist_label_car"), hgv:T("dist_label_hgv") };\n'
+        'const DIST_BADGE = { est:T("dist_badge_est"), car:T("dist_badge_car"), hgv:T("dist_badge_hgv") };',
+    ),
+    # fmtMin " min" unit (h/m kept verbatim)
+    (
+        '  if(min < 60) return min + " min";\n',
+        '  if(min < 60) return min + T("unit_min");\n',
+    ),
+    # populateFilters: poiCats labels (whole array)
+    (
+        '  const poiCats = [\n'
+        '    {t:"port", label:"Seaports"},\n'
+        '    {t:"rail", label:"Rail terminals"},\n'
+        '    {t:"air",  label:"Airports"},\n'
+        '    {t:"border", label:"Border crossings"},\n'
+        '    {t:"city", label:"Major cities"},\n'
+        '  ];',
+        '  const poiCats = [\n'
+        '    {t:"port", label:T("poi_port")},\n'
+        '    {t:"rail", label:T("poi_rail")},\n'
+        '    {t:"air",  label:T("poi_air")},\n'
+        '    {t:"border", label:T("poi_border")},\n'
+        '    {t:"city", label:T("poi_city")},\n'
+        '  ];',
+    ),
+    # populateFilters: "Property locations" legend label
+    (
+        '<span style="flex:1">Property locations</span>',
+        '<span style="flex:1">${T("legend_property_locations")}</span>',
+    ),
+    # cardHTML: carousel nav aria-labels (shared a11y_* keys)
+    (
+        '<button class="cm-nav cm-prev" aria-label="Previous photo" onclick="event.stopPropagation();cardNav(${p.id},-1,this)">‹</button><button class="cm-nav cm-next" aria-label="Next photo" onclick="event.stopPropagation();cardNav(${p.id},1,this)">›</button>',
+        '<button class="cm-nav cm-prev" aria-label="${T(\'a11y_prev_photo\')}" onclick="event.stopPropagation();cardNav(${p.id},-1,this)">‹</button><button class="cm-nav cm-next" aria-label="${T(\'a11y_next_photo\')}" onclick="event.stopPropagation();cardNav(${p.id},1,this)">›</button>',
+    ),
+    # cardHTML: spec labels + Compare + View details
+    (
+        '        Compare\n'
+        '      </label>',
+        '        ${T("card_compare")}\n'
+        '      </label>',
+    ),
+    # detailHTML modal hero: carousel nav aria-labels (shared a11y_* keys)
+    (
+        '<button class="cm-nav cm-prev" id="modal-prev" aria-label="Previous photo">‹</button><button class="cm-nav cm-next" id="modal-next" aria-label="Next photo">›</button>',
+        '<button class="cm-nav cm-prev" id="modal-prev" aria-label="${T(\'a11y_prev_photo\')}">‹</button><button class="cm-nav cm-next" id="modal-next" aria-label="${T(\'a11y_next_photo\')}">›</button>',
+    ),
+    (
+        '<div class="spec"><div class="spec-k">Warehouse</div><div class="spec-v">${fmt(p.warehouseArea)} ${AREA_UNIT}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">Clear height</div><div class="spec-v">${p.clearHeight}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">Status</div><div class="spec-v small">${p.status}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">Early access</div><div class="spec-v">${p.earlyAccess}</div></div>',
+        '<div class="spec"><div class="spec-k">${T("row_warehouse")}</div><div class="spec-v">${fmt(p.warehouseArea)} ${AREA_UNIT}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">${T("row_clear_height")}</div><div class="spec-v">${p.clearHeight}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">${T("row_status")}</div><div class="spec-v small">${p.status}</div></div>\n'
+        '        <div class="spec"><div class="spec-k">${T("row_early_access")}</div><div class="spec-v">${p.earlyAccess}</div></div>',
+    ),
+    (
+        '<button class="view-btn" onclick="openModal(${p.id})">View details <span class="arrow">→</span></button>',
+        '<button class="view-btn" onclick="openModal(${p.id})">${T("card_view_details")} <span class="arrow">→</span></button>',
+    ),
+    # toggleCompare alert
+    (
+        'alert("You can compare up to 4 properties at a time.");',
+        'alert(T("card_alert_max_compare"));',
+    ),
+    # updateTray: Remove aria-label
+    (
+        '<button onclick="toggleCompare(${id}, false)" aria-label="Remove">×</button>',
+        '<button onclick="toggleCompare(${id}, false)" aria-label="${T(\'tray_remove\')}">×</button>',
+    ),
+    # initMap: layer control labels (the map-popup pair also uses these keys)
+    (
+        'L.control.layers({ "Streets": streetsLayer, "Satellite": satelliteLayer }, null, { position: \'topright\', collapsed: false }).addTo(map);',
+        'L.control.layers({ [T("map_layer_streets")]: streetsLayer, [T("map_layer_satellite")]: satelliteLayer }, null, { position: \'topright\', collapsed: false }).addTo(map);',
+    ),
+    # propPopupHTML: View details
+    (
+        '<a href="#" class="popup-btn" onclick="event.preventDefault();openModal(${p.id})">View details</a>',
+        '<a href="#" class="popup-btn" onclick="event.preventDefault();openModal(${p.id})">${T("map_view_details")}</a>',
+    ),
+    # renderIsochrones ring tooltips (the main-map " reach (est.)" labels keyed by ring)
+    (
+        '  if(state.iso === "30" || state.iso === "both") rings.push({ r: 30000, color: "#17E88F", label: "30 min" });\n'
+        '  if(state.iso === "60" || state.iso === "both") rings.push({ r: 60000, color: "#003F2D", label: "60 min" });',
+        '  if(state.iso === "30" || state.iso === "both") rings.push({ r: 30000, color: "#17E88F", label: T("iso_30"), tip: T("iso_ring_30_tooltip") });\n'
+        '  if(state.iso === "60" || state.iso === "both") rings.push({ r: 60000, color: "#003F2D", label: T("iso_60"), tip: T("iso_ring_60_tooltip") });',
+    ),
+    (
+        '    c.bindTooltip(ring.label + " reach (est.)", { permanent: false });',
+        '    c.bindTooltip(ring.tip || (ring.label + " reach (est.)"), { permanent: false });',
+    ),
+    # computeAndDrawIsochrones: the modal real-isochrone tooltips
+    (
+        '    pg60.bindTooltip("60 min drive reach (real road network)", { sticky:true });',
+        '    pg60.bindTooltip(T("iso_ring_60_real"), { sticky:true });',
+    ),
+    (
+        '    pg30.bindTooltip("30 min drive reach (real road network)", { sticky:true });',
+        '    pg30.bindTooltip(T("iso_ring_30_real"), { sticky:true });',
+    ),
+    # computeAndDrawIsochrones: the modal-map caveat (real-rings form)
+    (
+        'caveat.innerHTML = `Coordinates: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : "not yet located (see Gaps Report)"}. <span style="color:var(--brand);font-weight:500">● Green and dark polygons show real 30 min and 60 min drive-time reach</span> computed from the OSRM road network. Use the top-right control to switch to satellite.`;',
+        'caveat.innerHTML = `${T("coords_prefix")}: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : T("coords_not_located")}. <span style="color:var(--brand);font-weight:500">${T("coords_rings_real")}</span> ${T("coords_rings_real_suffix")}`;',
+    ),
+    # detailHTML: the row(...) TBC display label + catMeta object
+    (
+        '    ? `<div class="spec"><div class="spec-k">${k}</div><div class="spec-v" style="color:var(--muted)">TBC</div></div>`',
+        '    ? `<div class="spec"><div class="spec-k">${k}</div><div class="spec-v" style="color:var(--muted)">${T("val_tbc")}</div></div>`',
+    ),
+    (
+        'const catMeta = { city:"Major cities", border:"Border crossings", air:"Airports", rail:"Rail terminals", port:"Seaports" };',
+        'const catMeta = { city:T("poi_city"), border:T("poi_border"), air:T("poi_air"), rail:T("poi_rail"), port:T("poi_port") };',
+    ),
+    # detailHTML: distStatusHtml (the OSRM status strings). The hgv/car LEAD clause keeps
+    # its brand-green bold span (v18 behaviour) - emitted at the call site (mirrors the
+    # coords_rings_real pattern) so the translatable strings stay markup-free. The est
+    # branch had no span in v18 - left as a single key.
+    (
+        '    ? (DIST_MODE === "hgv"\n'
+        '        ? `<span style="color:var(--brand);font-weight:500">● HGV / truck-routed distances from openrouteservice.</span> Distances reflect the actual road network for trucks. Border wait times not included.`\n'
+        '        : `<span style="color:var(--brand);font-weight:500">● Car-routed distances from OSRM.</span> Distances reflect the actual road network. Truck/HGV times are not modelled; border wait times not included.`)\n'
+        '    : `Distances shown as great-circle estimates. Fetching live car-routed drive times from OSRM (truck/HGV times are not modelled)…`;',
+        '    ? (DIST_MODE === "hgv"\n'
+        '        ? `<span style="color:var(--brand);font-weight:500">${T(\'dist_status_hgv_lead\')}</span> ${T(\'dist_status_hgv_rest\')}`\n'
+        '        : `<span style="color:var(--brand);font-weight:500">${T(\'dist_status_car_lead\')}</span> ${T(\'dist_status_car_rest\')}`)\n'
+        '    : T("dist_status_est");',
+    ),
+    # detailHTML modal hero: image toggle labels
+    (
+        '${p.plan ? \'<div class="image-toggle"> <button class="active" data-view="photo">Aerial / Render</button> <button data-view="plan">Site Plan</button> </div>\' : \'\'}',
+        '${p.plan ? `<div class="image-toggle"> <button class="active" data-view="photo">${T("img_toggle_photo")}</button> <button data-view="plan">${T("img_toggle_plan")}</button> </div>` : \'\'}',
+    ),
+    # detailHTML modal head: "Early access" prefix + "Open in Google Maps"
+    (
+        '<span>Early access ${p.earlyAccess}</span>',
+        '<span>${T("modal_early_access_prefix")} ${p.earlyAccess}</span>',
+    ),
+    (
+        '<a class="map-link" href="${mapHref}" target="_blank" rel="noopener">Open in Google Maps ↗</a>',
+        '<a class="map-link" href="${mapHref}" target="_blank" rel="noopener">${T("modal_open_maps")}</a>',
+    ),
+    # detailHTML: approx-note
+    (
+        '<div class="approx-note">Coordinates are approximate — exact site location to be confirmed by developer.</div>',
+        '<div class="approx-note">${T("modal_approx_note")}</div>',
+    ),
+    # detailHTML: Availability & Site section title + its row() labels
+    (
+        '<h3 class="section-title">Availability &amp; Site</h3>',
+        '<h3 class="section-title">${T("sec_availability")}</h3>',
+    ),
+    (
+        "        row('Total GLA', glaStr(p), 'warehouseArea'),\n"
+        "        row('Warehouse area', fmt(p.warehouseArea) + ' ' + AREA_UNIT, 'warehouseArea'),\n"
+        "        row('Office area', p.officeArea, 'officeArea'),\n"
+        "        row('Plot area', p.plotArea ? fmt(p.plotArea) + ' ' + AREA_UNIT : '—', 'plotArea'),\n"
+        "        row('Divisible from', p.divisibleFrom, 'divisibleFrom'),\n"
+        "        row('Expansion in building', p.expansionBuilding, 'expansionBuilding'),\n"
+        "        row('Expansion in park', p.expansionPark, 'expansionPark'),\n"
+        "        row('Landlord', p.landlord, 'landlord'),\n"
+        "        row('Property status', p.status, 'status'),\n"
+        "        row('Permitting', p.permitting, 'permitting'),\n"
+        "        row('Early access date', p.earlyAccess, 'earlyAccess'),",
+        "        row(T('row_total_gla'), glaStr(p), 'warehouseArea'),\n"
+        "        row(T('row_warehouse_area'), fmt(p.warehouseArea) + ' ' + AREA_UNIT, 'warehouseArea'),\n"
+        "        row(T('row_office_area'), p.officeArea, 'officeArea'),\n"
+        "        row(T('row_plot_area'), p.plotArea ? fmt(p.plotArea) + ' ' + AREA_UNIT : '—', 'plotArea'),\n"
+        "        row(T('row_divisible_from'), p.divisibleFrom, 'divisibleFrom'),\n"
+        "        row(T('row_expansion_building'), p.expansionBuilding, 'expansionBuilding'),\n"
+        "        row(T('row_expansion_park'), p.expansionPark, 'expansionPark'),\n"
+        "        row(T('row_landlord'), p.landlord, 'landlord'),\n"
+        "        row(T('row_property_status'), p.status, 'status'),\n"
+        "        row(T('row_permitting'), p.permitting, 'permitting'),\n"
+        "        row(T('row_early_access_date'), p.earlyAccess, 'earlyAccess'),",
+    ),
+    # detailHTML: Technical Specification section title + rows
+    (
+        '<h3 class="section-title">Technical Specification</h3>',
+        '<h3 class="section-title">${T("sec_technical")}</h3>',
+    ),
+    (
+        "        row('Clear height', p.clearHeight, 'clearHeight'),\n"
+        "        row('Floor load', p.floorLoad, 'floorLoad'),\n"
+        "        row('Sprinklers', p.sprinklers, 'sprinklers'),\n"
+        "        row('Loading docks', p.loadingDocks, 'loadingDocks'),\n"
+        "        row('Overhead doors', p.overheadDoors, 'overheadDoors'),\n"
+        "        row('Electricity', p.electricity, 'electricity'),\n"
+        "        row('Truck parking', p.truckParking, 'truckParking'),\n"
+        "        row('Car parking', p.carParking, 'carParking'),",
+        "        row(T('row_clear_height'), p.clearHeight, 'clearHeight'),\n"
+        "        row(T('row_floor_load'), p.floorLoad, 'floorLoad'),\n"
+        "        row(T('row_sprinklers'), p.sprinklers, 'sprinklers'),\n"
+        "        row(T('row_loading_docks'), p.loadingDocks, 'loadingDocks'),\n"
+        "        row(T('row_overhead_doors'), p.overheadDoors, 'overheadDoors'),\n"
+        "        row(T('row_electricity'), p.electricity, 'electricity'),\n"
+        "        row(T('row_truck_parking'), p.truckParking, 'truckParking'),\n"
+        "        row(T('row_car_parking'), p.carParking, 'carParking'),",
+    ),
+    # detailHTML: Commercial Terms section title + rows
+    (
+        '<h3 class="section-title">Commercial Terms (Headline)</h3>',
+        '<h3 class="section-title">${T("sec_commercial")}</h3>',
+    ),
+    (
+        "        row('Warehouse rent', p.warehouseRent, 'warehouseRent'),\n"
+        "        row('Warehouse rent (monthly)', rentMonthlyStr(p) || '—', 'warehouseRent'),\n"
+        "        row('Total annual rent', totalRentStr(p,false) || '—', 'warehouseRent'),\n"
+        "        row('Total monthly rent', totalRentStr(p,true) || '—', 'warehouseRent'),\n"
+        "        row('Office rent', p.officeRent, 'officeRent'),\n"
+        "        row('Service charge', p.serviceCharge, 'serviceCharge'),\n"
+        "        row('Land price', p.landPrice, 'landPrice'),\n"
+        "        p.leaseTerm ? row('Lease term', p.leaseTerm, 'leaseTerm') : '',\n"
+        "        p.rentFree ? row('Rent-free period', p.rentFree, 'rentFree') : '',\n"
+        "        p.incentives && p.incentives !== 'Not mentioned in first offer' ? row('Incentives', p.incentives, 'incentives') : '',\n"
+        "        p.reit ? row('REIT', p.reit, 'reit') : '',",
+        "        row(T('row_warehouse_rent'), p.warehouseRent, 'warehouseRent'),\n"
+        "        row(T('row_warehouse_rent_monthly'), rentMonthlyStr(p) || '—', 'warehouseRent'),\n"
+        "        row(T('row_total_annual_rent'), totalRentStr(p,false) || '—', 'warehouseRent'),\n"
+        "        row(T('row_total_monthly_rent'), totalRentStr(p,true) || '—', 'warehouseRent'),\n"
+        "        row(T('row_office_rent'), p.officeRent, 'officeRent'),\n"
+        "        row(T('row_service_charge'), p.serviceCharge, 'serviceCharge'),\n"
+        "        row(T('row_land_price'), p.landPrice, 'landPrice'),\n"
+        "        p.leaseTerm ? row(T('row_lease_term'), p.leaseTerm, 'leaseTerm') : '',\n"
+        "        p.rentFree ? row(T('row_rent_free'), p.rentFree, 'rentFree') : '',\n"
+        "        p.incentives && p.incentives !== 'Not mentioned in first offer' ? row(T('row_incentives'), p.incentives, 'incentives') : '',\n"
+        "        p.reit ? row(T('row_reit'), p.reit, 'reit') : '',",
+    ),
+    # detailHTML: Location & Reach section title
+    (
+        '<h3 class="section-title">Location &amp; Reach</h3>',
+        '<h3 class="section-title">${T("sec_location")}</h3>',
+    ),
+    # detailHTML: the modal-map caveat (estimated-rings initial form)
+    (
+        '<div class="dist-caveat" id="modal-map-caveat" style="margin-top:8px">Coordinates: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : "not yet located (see Gaps Report)"}. Green ring ≈ 30 min reach, dark ring ≈ 60 min reach (estimated — fetching real isochrones…). Use the top-right control to switch to satellite.</div>',
+        '<div class="dist-caveat" id="modal-map-caveat" style="margin-top:8px">${T("coords_prefix")}: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : T("coords_not_located")}. ${T("coords_rings_est")}</div>',
+    ),
+    # detailHTML: distance table headers (Drive time already suffixed with DIST_LABEL)
+    (
+        '<thead><tr><th>Destination</th><th style="text-align:right">Distance</th><th style="text-align:right">Drive time (${DIST_LABEL[DIST_MODE]||\'est.\'})</th></tr></thead>',
+        '<thead><tr><th>${T("dist_th_destination")}</th><th style="text-align:right">${T("dist_th_distance")}</th><th style="text-align:right">${T("dist_th_drive_time")} (${DIST_LABEL[DIST_MODE]||\'est.\'})</th></tr></thead>',
+    ),
+    # detailHTML: Workforce & Region section title
+    (
+        '<h3 class="section-title">Workforce &amp; Region</h3>',
+        '<h3 class="section-title">${T("sec_workforce")}</h3>',
+    ),
+    # detailHTML: district panel labels
+    (
+        '<div class="district-label">District-level labour market</div>',
+        '<div class="district-label">${T("wf_district_label")}</div>',
+    ),
+    (
+        '<div class="metric-label">Unemployment · ${rStr(dist.asOf)}</div>',
+        '<div class="metric-label">${T("wf_unemployment")} · ${rStr(dist.asOf)}</div>',
+    ),
+    (
+        "<span class=\"apv-chip\">${dist.applicantsPerVacancy} applicants / vacancy</span>\n"
+        "            <span class=\"apv-meaning\">${dist.applicantsPerVacancy < 3 ? 'Tight labour market' : dist.applicantsPerVacancy < 8 ? 'Balanced' : 'Deep labour pool available'}</span>",
+        "<span class=\"apv-chip\">${dist.applicantsPerVacancy} ${T('wf_applicants_suffix')}</span>\n"
+        "            <span class=\"apv-meaning\">${dist.applicantsPerVacancy < 3 ? T('wf_market_tight') : dist.applicantsPerVacancy < 8 ? T('wf_market_balanced') : T('wf_market_deep')}</span>",
+    ),
+    # detailHTML: region stat tiles (whole block of stat(...) calls)
+    (
+        "          ${stat('Regional unemployment', (typeof reg.unemployment === 'number') ? rNum(reg.unemployment) : null, '%', reg.unemploymentAsOf)}\n"
+        "          ${stat('Population', (typeof reg.population === 'number') ? rK(reg.population) : null, '', reg.populationAsOf ? `As of ${reg.populationAsOf}` : '')}\n"
+        "          ${stat('Labour force', (typeof reg.labourForce === 'number') ? rK(reg.labourForce) : null, '', 'Economically active')}\n"
+        "          ${stat('Employment rate', (typeof reg.employmentRate === 'number') ? rNum(reg.employmentRate) : null, '%', 'Age 20–64')}\n"
+        "          ${stat('GDP per capita', (typeof reg.gdpPpsEu === 'number') ? rNum(reg.gdpPpsEu) : null, '% EU27', reg.gdpPpsAsOf ? `PPS, ${reg.gdpPpsAsOf}` : 'PPS')}\n"
+        "          ${stat('GDP (nominal)', gdp, '', reg.gdpAsOf || baselineAsOf)}\n"
+        "          ${stat('Manufacturing employment', (typeof reg.emplManufacturing === 'number') ? rK(reg.emplManufacturing) : null, '', 'Persons employed')}\n"
+        "          ${stat('Transport &amp; storage employment', (typeof reg.emplTransportStorage === 'number') ? rK(reg.emplTransportStorage) : null, '', 'Persons employed')}\n"
+        "          ${stat('Logistics employment share', (logiShare !== null) ? rNum(logiShare) : null, '%', 'Transport &amp; storage share of the labour force')}",
+        "          ${stat(T('wf_regional_unemployment'), (typeof reg.unemployment === 'number') ? rNum(reg.unemployment) : null, T('wf_unit_pct'), reg.unemploymentAsOf)}\n"
+        "          ${stat(T('wf_population'), (typeof reg.population === 'number') ? rK(reg.population) : null, '', reg.populationAsOf ? `${T('wf_as_of_prefix')} ${reg.populationAsOf}` : '')}\n"
+        "          ${stat(T('wf_labour_force'), (typeof reg.labourForce === 'number') ? rK(reg.labourForce) : null, '', T('wf_economically_active'))}\n"
+        "          ${stat(T('wf_employment_rate'), (typeof reg.employmentRate === 'number') ? rNum(reg.employmentRate) : null, T('wf_unit_pct'), T('wf_age_20_64'))}\n"
+        "          ${stat(T('wf_gdp_per_capita'), (typeof reg.gdpPpsEu === 'number') ? rNum(reg.gdpPpsEu) : null, T('wf_unit_pct_eu27'), reg.gdpPpsAsOf ? `${T('wf_pps_prefix')}, ${reg.gdpPpsAsOf}` : T('wf_pps_prefix'))}\n"
+        "          ${stat(T('wf_gdp_nominal'), gdp, '', reg.gdpAsOf || baselineAsOf)}\n"
+        "          ${stat(T('wf_manufacturing_employment'), (typeof reg.emplManufacturing === 'number') ? rK(reg.emplManufacturing) : null, '', T('wf_persons_employed'))}\n"
+        "          ${stat(T('wf_transport_storage_employment'), (typeof reg.emplTransportStorage === 'number') ? rK(reg.emplTransportStorage) : null, '', T('wf_persons_employed'))}\n"
+        "          ${stat(T('wf_logistics_share'), (logiShare !== null) ? rNum(logiShare) : null, T('wf_unit_pct'), T('wf_logistics_sub'))}",
+    ),
+    # detailHTML: region sources label
+    (
+        '<div class="region-sources"><strong>Sources:</strong> ${reg.sources}</div>',
+        '<div class="region-sources"><strong>${T("wf_sources")}</strong> ${reg.sources}</div>',
+    ),
+    # detailHTML: empty-workforce sentence
+    (
+        '` : `<p class="desc" style="color:var(--muted)">Workforce and regional labour data not yet added for this option — see the Gaps Report.</p>`}',
+        '` : `<p class="desc" style="color:var(--muted)">${T("wf_empty")}</p>`}',
+    ),
+    # initModalMap: not-located note + layer control
+    (
+        "    el.innerHTML = '<p class=\"desc\" style=\"padding:12px;color:var(--muted)\">Location not yet confirmed - see the Gaps Report.</p>';",
+        "    el.innerHTML = `<p class=\"desc\" style=\"padding:12px;color:var(--muted)\">${T('map_not_confirmed')}</p>`;",
+    ),
+    (
+        'L.control.layers({ "Streets": mStreets, "Satellite": mSatellite }, null, { position: \'topright\', collapsed: false }).addTo(miniMap);',
+        'L.control.layers({ [T("map_layer_streets")]: mStreets, [T("map_layer_satellite")]: mSatellite }, null, { position: \'topright\', collapsed: false }).addTo(miniMap);',
+    ),
+    # openCompare alert
+    (
+        'alert("Select at least two properties to compare.");',
+        'alert(T("cmp_alert_min_two"));',
+    ),
+    # compareHTML: the rows array labels (whole array)
+    (
+        "    ['Country', p=>p.country, 'country'],\n"
+        "    ['City', p=>p.city, 'city'],\n"
+        "    ['Developer', p=>p.developer, 'developer'],\n"
+        "    ['Landlord', p=>p.landlord, 'landlord'],\n"
+        "    ['Motorway', p=>p.motorway, 'motorway'],\n"
+        "    ['Status', p=>p.status, 'status'],\n"
+        "    ['Early access', p=>p.earlyAccess, 'earlyAccess'],\n"
+        "    ['Permitting', p=>p.permitting, 'permitting'],\n"
+        "    ['Total GLA', p=>glaStr(p), 'warehouseArea'],\n"
+        "    ['Warehouse area', p=>fmt(p.warehouseArea)+' '+AREA_UNIT, 'warehouseArea'],\n"
+        "    ['Office area', p=>p.officeArea, 'officeArea'],\n"
+        "    ['Plot area', p=>p.plotArea ? fmt(p.plotArea)+' '+AREA_UNIT : '—', 'plotArea'],\n"
+        "    ['Divisible from', p=>p.divisibleFrom, 'divisibleFrom'],\n"
+        "    ['Expansion in building', p=>p.expansionBuilding, 'expansionBuilding'],\n"
+        "    ['Expansion in park', p=>p.expansionPark, 'expansionPark'],\n"
+        "    ['Clear height', p=>p.clearHeight, 'clearHeight'],\n"
+        "    ['Floor load', p=>p.floorLoad, 'floorLoad'],\n"
+        "    ['Sprinklers', p=>p.sprinklers, 'sprinklers'],\n"
+        "    ['Loading docks', p=>p.loadingDocks, 'loadingDocks'],\n"
+        "    ['Overhead doors', p=>p.overheadDoors, 'overheadDoors'],\n"
+        "    ['Electricity', p=>p.electricity, 'electricity'],\n"
+        "    ['Truck parking', p=>p.truckParking, 'truckParking'],\n"
+        "    ['Car parking', p=>p.carParking, 'carParking'],\n"
+        "    ['Warehouse rent', p=>p.warehouseRent, 'warehouseRent'],\n"
+        "    ['Warehouse rent (monthly)', p=>rentMonthlyStr(p) || '—', 'warehouseRent'],\n"
+        "    ['Total annual rent', p=>totalRentStr(p,false) || '—', 'warehouseRent'],\n"
+        "    ['Total monthly rent', p=>totalRentStr(p,true) || '—', 'warehouseRent'],\n"
+        "    ['Office rent', p=>p.officeRent, 'officeRent'],\n"
+        "    ['Service charge', p=>p.serviceCharge, 'serviceCharge'],\n"
+        "    ['Lease term', p=>p.leaseTerm || '—', 'leaseTerm'],\n"
+        "    ['Rent-free period', p=>p.rentFree || '—', 'rentFree'],\n"
+        "    ['Certification', p=>p.breeam || '—', 'breeam'],",
+        "    [T('cmp_country'), p=>p.country, 'country'],\n"
+        "    [T('cmp_city'), p=>p.city, 'city'],\n"
+        "    [T('cmp_developer'), p=>p.developer, 'developer'],\n"
+        "    [T('row_landlord'), p=>p.landlord, 'landlord'],\n"
+        "    [T('cmp_motorway'), p=>p.motorway, 'motorway'],\n"
+        "    [T('cmp_status'), p=>p.status, 'status'],\n"
+        "    [T('cmp_early_access'), p=>p.earlyAccess, 'earlyAccess'],\n"
+        "    [T('row_permitting'), p=>p.permitting, 'permitting'],\n"
+        "    [T('row_total_gla'), p=>glaStr(p), 'warehouseArea'],\n"
+        "    [T('row_warehouse_area'), p=>fmt(p.warehouseArea)+' '+AREA_UNIT, 'warehouseArea'],\n"
+        "    [T('row_office_area'), p=>p.officeArea, 'officeArea'],\n"
+        "    [T('row_plot_area'), p=>p.plotArea ? fmt(p.plotArea)+' '+AREA_UNIT : '—', 'plotArea'],\n"
+        "    [T('row_divisible_from'), p=>p.divisibleFrom, 'divisibleFrom'],\n"
+        "    [T('row_expansion_building'), p=>p.expansionBuilding, 'expansionBuilding'],\n"
+        "    [T('row_expansion_park'), p=>p.expansionPark, 'expansionPark'],\n"
+        "    [T('row_clear_height'), p=>p.clearHeight, 'clearHeight'],\n"
+        "    [T('row_floor_load'), p=>p.floorLoad, 'floorLoad'],\n"
+        "    [T('row_sprinklers'), p=>p.sprinklers, 'sprinklers'],\n"
+        "    [T('row_loading_docks'), p=>p.loadingDocks, 'loadingDocks'],\n"
+        "    [T('row_overhead_doors'), p=>p.overheadDoors, 'overheadDoors'],\n"
+        "    [T('row_electricity'), p=>p.electricity, 'electricity'],\n"
+        "    [T('row_truck_parking'), p=>p.truckParking, 'truckParking'],\n"
+        "    [T('row_car_parking'), p=>p.carParking, 'carParking'],\n"
+        "    [T('row_warehouse_rent'), p=>p.warehouseRent, 'warehouseRent'],\n"
+        "    [T('row_warehouse_rent_monthly'), p=>rentMonthlyStr(p) || '—', 'warehouseRent'],\n"
+        "    [T('row_total_annual_rent'), p=>totalRentStr(p,false) || '—', 'warehouseRent'],\n"
+        "    [T('row_total_monthly_rent'), p=>totalRentStr(p,true) || '—', 'warehouseRent'],\n"
+        "    [T('row_office_rent'), p=>p.officeRent, 'officeRent'],\n"
+        "    [T('row_service_charge'), p=>p.serviceCharge, 'serviceCharge'],\n"
+        "    [T('row_lease_term'), p=>p.leaseTerm || '—', 'leaseTerm'],\n"
+        "    [T('row_rent_free'), p=>p.rentFree || '—', 'rentFree'],\n"
+        "    [T('cmp_certification'), p=>p.breeam || '—', 'breeam'],",
+    ),
+    # compareHTML: distRows labels (only the labels change; the fn bodies are DATA)
+    (
+        "    ['Nearest major city', p=>{ const d = groupedDistances(p).city[0]; if(!d) return 'tbd';",
+        "    [T('cmp_nearest_city'), p=>{ const d = groupedDistances(p).city[0]; if(!d) return 'tbd';",
+    ),
+    (
+        "    ['Nearest border', p=>{ const d = groupedDistances(p).border[0]; if(!d) return 'tbd';",
+        "    [T('cmp_nearest_border'), p=>{ const d = groupedDistances(p).border[0]; if(!d) return 'tbd';",
+    ),
+    (
+        "    ['Nearest airport', p=>{ const d = groupedDistances(p).air[0]; if(!d) return 'tbd';",
+        "    [T('cmp_nearest_airport'), p=>{ const d = groupedDistances(p).air[0]; if(!d) return 'tbd';",
+    ),
+    (
+        "    ['Nearest rail', p=>{ const d = groupedDistances(p).rail[0]; if(!d) return 'tbd';",
+        "    [T('cmp_nearest_rail'), p=>{ const d = groupedDistances(p).rail[0]; if(!d) return 'tbd';",
+    ),
+    (
+        "    ['Nearest seaport', p=>{ const d = groupedDistances(p).port[0]; if(!d) return 'tbd';",
+        "    [T('cmp_nearest_seaport'), p=>{ const d = groupedDistances(p).port[0]; if(!d) return 'tbd';",
+    ),
+    # compareHTML: side-by-side header + count + highlight note + Attribute
+    (
+        '<div class="modal-dev">Side-by-side comparison</div>\n'
+        '        <h2 class="modal-title">${items.length} properties compared</h2>\n'
+        '        <div class="modal-meta"><span>Largest warehouse and lowest rent highlighted</span></div>',
+        '<div class="modal-dev">${T("cmp_side_by_side")}</div>\n'
+        '        <h2 class="modal-title">${items.length} ${T("cmp_properties_compared_suffix")}</h2>\n'
+        '        <div class="modal-meta"><span>${T("cmp_highlight_note")}</span></div>',
+    ),
+    (
+        '<thead><tr><th style="min-width:170px">Attribute</th>',
+        '<thead><tr><th style="min-width:170px">${T("cmp_attribute")}</th>',
+    ),
+    # compareHTML highlight: the size/rent highlight matched `label` against HARDCODED
+    # English literals - broken in every non-EN language (the largest-warehouse / lowest-
+    # rent highlight silently vanished once `label` came from T()). Compare against the
+    # SAME T('key') the compare rows use. EXACT v18 behaviour preserved: only the per-area
+    # 'Warehouse area' row highlights for size; only the two warehouse-rent RATE rows
+    # ('Warehouse rent' + 'Warehouse rent (monthly)') highlight for rent - the
+    # 'Total annual/monthly rent' rows stay UN-highlighted (we match on the localised LABEL,
+    # NOT the shared 'warehouseRent' field key, which would wrongly catch the totals).
+    (
+        "                if(label==='Warehouse area' && i===minSizeIdx) hl='cmp-highlight';\n"
+        "                if((label==='Warehouse rent' || label==='Warehouse rent (monthly)') && i===minRentIdx) hl='cmp-highlight';",
+        "                if(label===T('row_warehouse_area') && i===minSizeIdx) hl='cmp-highlight';\n"
+        "                if((label===T('row_warehouse_rent') || label===T('row_warehouse_rent_monthly')) && i===minRentIdx) hl='cmp-highlight';",
+    ),
+    # legend-mode tag object at the end of the script
+    (
+        'const tag = { est:"(est. drive times)", car:"(car-baked drive times)", hgv:"(HGV-baked drive times)" };',
+        'const tag = { est:T("legend_mode_est"), car:T("legend_mode_car"), hgv:T("legend_mode_hgv") };',
+    ),
+]
+
+# 6. Locale-aware number/region formatting (DATA-safe: reformat separators / render
+#    country names from ISO codes; never alter traced figures).
+FORMAT_PATCHES = [
+    (
+        'const fmt = n => (typeof n === "number" && isFinite(n)) ? n.toLocaleString("en-US") : (n == null ? "tbd" : n);',
+        'const fmt = n => (typeof n === "number" && isFinite(n)) ? n.toLocaleString(LOCALE) : (n == null ? "tbd" : n);',
+    ),
+    (
+        'return cur + " " + Math.round(v).toLocaleString("en-US") + (monthly ? " / mo" : " / yr");',
+        'return cur + " " + Math.round(v).toLocaleString(LOCALE) + (monthly ? " / mo" : " / yr");',
+    ),
+    (
+        'try { const dn = new Intl.DisplayNames(["en"], {type:"region"}); regionName = c => { try { return dn.of(c) || c; } catch(e) { return c; } }; } catch(e) {}',
+        'try { const dn = new Intl.DisplayNames([LOCALE], {type:"region"}); regionName = c => { try { return dn.of(c) || c; } catch(e) { return c; } }; } catch(e) {}',
+    ),
+]
+
+# 2. applyI18n(document) invocation: prepend before the unique populateFilters() call.
+APPLY_ANCHOR = "populateFilters();"
+APPLY_PREPEND = "applyI18n(document);\n"
+
+# 5. adaptSingleCountryHeader: match the KPI tiles by data-i18n KEY, not textContent
+#    (the labels are localised at runtime before this runs).
+ADAPT_PATCHES = [
+    (
+        '      const lbl = ((k.querySelector(".kpi-label") || {}).textContent || "").trim();\n'
+        '      if(lbl === "Countries") countriesTile = k;\n'
+        '      if(lbl === "Regions") regionsTile = k;',
+        '      if(k.querySelector(\'.kpi-label[data-i18n="kpi_countries_label"]\')) countriesTile = k;\n'
+        '      if(k.querySelector(\'.kpi-label[data-i18n="kpi_regions_label"]\')) regionsTile = k;',
+    ),
+]
+
+
+def _apply_once(text: str, old: str, new: str, what: str) -> str:
+    n = text.count(old)
+    if n != 1:
+        fail(f"{what}: expected exactly once, found {n}x:\n  {old[:120]!r}")
+    return text.replace(old, new)
+
+
+def patch_template(out_path: str, version_path: str, label: str) -> None:
+    """v19 patch-only path: patch the EXISTING frozen template in place to add the
+    i18n bootstrap, data-i18n attributes, T('KEY') calls, the applyI18n pass, the
+    adaptSingleCountryHeader key-based fix, and the locale-aware formatting; then
+    recompute chrome_sha256 and write VERSION. Every patch asserts count == 1."""
+    out = Path(out_path)
+    if not out.exists():
+        fail(f"template to patch not found: {out}")
+    text = out.read_text(encoding="utf-8")
+
+    # guard: do not double-patch an already-i18n template
+    if "const UI =" in text or "data-i18n" in text:
+        fail("template already contains i18n markup (const UI / data-i18n) - patch-only "
+             "expects the pre-i18n frozen template; restore assets/dashboard_template.v18.html first")
+
+    # 1. INJECT_BLOCK immediately before the ROUTES line
+    text = _apply_once(text, INJECT_BLOCK_ANCHOR, INJECT_BLOCK + INJECT_BLOCK_ANCHOR,
+                       "inject i18n bootstrap")
+    # 3. static block patches
+    for i, (old, new) in enumerate(STATIC_PATCHES):
+        text = _apply_once(text, old, new, f"static patch #{i}")
+    # 4. JS patches
+    for i, (old, new) in enumerate(JS_PATCHES):
+        text = _apply_once(text, old, new, f"JS patch #{i}")
+    # 2. applyI18n(document) before populateFilters()
+    text = _apply_once(text, APPLY_ANCHOR, APPLY_PREPEND + APPLY_ANCHOR,
+                       "applyI18n invocation")
+    # 5. adaptSingleCountryHeader key-based fix
+    for i, (old, new) in enumerate(ADAPT_PATCHES):
+        text = _apply_once(text, old, new, f"adaptSingleCountryHeader patch #{i}")
+    # 6. format/locale patches
+    for i, (old, new) in enumerate(FORMAT_PATCHES):
+        text = _apply_once(text, old, new, f"format patch #{i}")
+
+    # the modal-close aria-label "Close" appears EXACTLY twice (detailHTML +
+    # compareHTML) with identical markup - replace both (shared a11y_close key).
+    mc_old = '<button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>'
+    mc_new = '<button class="modal-close" onclick="closeModal()" aria-label="${T(\'a11y_close\')}">×</button>'
+    mc_n = text.count(mc_old)
+    if mc_n != 2:
+        fail(f"modal-close aria-label: expected exactly twice, found {mc_n}x")
+    text = text.replace(mc_old, mc_new)
+
+    # invariants: the new tokens present, markers intact, UI/LOCALE consts present
+    for tok in ("{{ui_json}}", "{{locale}}"):
+        if tok not in text:
+            fail(f"token {tok} missing after patch")
+    for marker in DATA_MARKERS.values():
+        if marker not in text:
+            fail(f"data marker {marker} missing after patch (must stay intact)")
+    if "const UI =" not in text or "const LOCALE =" not in text:
+        fail("const UI = / const LOCALE = missing after patch")
+
+    out.write_text(text, encoding="utf-8")
+    # recompute the sha on the read-back (universal-newline normalised) form so it
+    # matches exactly what _common.load_template() hashes at validate-html time.
+    readback = out.read_text(encoding="utf-8")
+    chrome_sha = hashlib.sha256(readback.encode("utf-8")).hexdigest()
+    ver = Path(version_path)
+    ver.parent.mkdir(parents=True, exist_ok=True)
+    ver.write_text(f"{label}\nchrome_sha256={chrome_sha}\n", encoding="utf-8")
+
+    kb = len(readback.encode("utf-8")) / 1024
+    print(f"OK template patched (v19 i18n): {out} ({kb:.0f} KB)")
+    print(f"OK version: {label}  chrome_sha256={chrome_sha}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("reference", help="path to a reference dashboard HTML")
+    ap.add_argument("reference", nargs="?", help="path to a reference dashboard HTML "
+                    "(omit with --patch-only)")
     ap.add_argument("--out", default="assets/dashboard_template.html")
     ap.add_argument("--version", default="assets/VERSION")
     ap.add_argument("--label", default="v1")
+    ap.add_argument("--patch-only", action="store_true",
+                    help="v19+ i18n: PATCH the existing frozen --out template in place "
+                         "(assert-exactly-once-or-abort) instead of regenerating from a "
+                         "raw reference; recomputes chrome_sha256 and writes VERSION.")
     args = ap.parse_args()
 
+    if args.patch_only:
+        patch_template(args.out, args.version, args.label)
+        return
+
+    if not args.reference:
+        fail("a reference path is required for the v1 regen path (use --patch-only to "
+             "patch the existing template instead)")
     ref = Path(args.reference)
     if not ref.exists():
         fail(f"reference not found: {ref}")

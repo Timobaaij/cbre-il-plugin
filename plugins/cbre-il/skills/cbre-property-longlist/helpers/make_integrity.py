@@ -17,7 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TARGETS = (
     sorted(str(p.relative_to(ROOT)).replace("\\", "/") for p in (ROOT / "helpers").glob("*.py"))
-    + ["assets/dashboard_template.html", "assets/VERSION",
+    # bundled per-language chrome translations (Phase 1b); a truncated file would silently
+    # degrade that language to the English fallback, so integrity-guard each one
+    + sorted(str(p.relative_to(ROOT)).replace("\\", "/") for p in (ROOT / "assets" / "i18n").glob("*.json"))
+    + ["assets/dashboard_template.html",
+       # the PRIOR template, kept so old projects rebuild identically (contract rule);
+       # v18 = the last pre-i18n template, preserved when v19 added localisation
+       "assets/dashboard_template.v18.html", "assets/VERSION",
        # the load-bearing JSON assets: a truncated poi_library crashes intake, a
        # truncated label_ledger silently degrades multilingual extraction. The three
        # big datasets ship GZIPPED (.json.gz) to keep the skill under the org upload-

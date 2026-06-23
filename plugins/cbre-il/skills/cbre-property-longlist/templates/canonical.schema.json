@@ -18,6 +18,9 @@
         "confidential": {"type": "boolean"},
         "generatedAt": {"type": "string"},
         "templateVersion": {"type": "string"},
+        "language": {"type": "string", "description": "Dashboard CHROME language (Stage-0 Q3): an ISO code ('de'), an endonym ('Deutsch') or an English name ('German'). Optional; absent -> English. Resolved to the bundled i18n table at render time (per-key English fallback). DATA is never translated."},
+        "locale": {"type": "string", "description": "Optional explicit BCP-47 locale (e.g. 'de-AT') for number/date formatting + country-name display. Absent -> the language's default region (BCP47 map)."},
+        "ui_overrides": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Phase-2 FALLBACK chrome translation for a SUPPORTED-but-not-bundled European Latin-script language. A flat {chrome_key: translated_string} map, baked here by merge.py (--ui-overrides) from the work-dir translate-once cache; ONLY keys that exist in i18n.EN are kept (DATA/_meta keys dropped). render() layers it over EN so the fallback is reproducible from canonical alone (validate-html byte-identity). Absent for the bundled 12 + EN."},
         "hero": {
           "type": "object",
           "description": "Fills the project-specific {{tokens}} in the template. KPI tokens are computed by build_dashboard.py and need not be supplied here.",

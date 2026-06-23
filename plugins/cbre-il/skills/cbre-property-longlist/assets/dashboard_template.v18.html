@@ -1162,12 +1162,12 @@ footer .container{ color:var(--light-grey); }
     <p class="lede">{{lede}}</p>
 
     <div class="kpis">
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_properties_label">Properties</div><div class="kpi-value">{{kpi_properties}}</div><div class="kpi-sub" data-i18n="kpi_properties_sub">Longlist</div></div>
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_countries_label">Countries</div><div class="kpi-value">{{kpi_countries}}</div><div class="kpi-sub">{{kpi_countries_sub}}</div></div>
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_regions_label">Regions</div><div class="kpi-value">{{kpi_regions}}</div><div class="kpi-sub">{{kpi_regions_sub}}</div></div>
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_developers_label">Developers</div><div class="kpi-value">{{kpi_developers}}</div><div class="kpi-sub" data-i18n="kpi_developers_sub">Major landlords</div></div>
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_wh_area_label">Warehouse area</div><div class="kpi-value">{{kpi_wh_area}}</div><div class="kpi-sub">{{kpi_wh_area_sub}}</div></div>
-      <div class="kpi"><div class="kpi-label" data-i18n="kpi_rent_label">Headline rent</div><div class="kpi-value">{{kpi_rent}}</div><div class="kpi-sub">{{kpi_rent_sub}}</div></div>
+      <div class="kpi"><div class="kpi-label">Properties</div><div class="kpi-value">{{kpi_properties}}</div><div class="kpi-sub">Longlist</div></div>
+      <div class="kpi"><div class="kpi-label">Countries</div><div class="kpi-value">{{kpi_countries}}</div><div class="kpi-sub">{{kpi_countries_sub}}</div></div>
+      <div class="kpi"><div class="kpi-label">Regions</div><div class="kpi-value">{{kpi_regions}}</div><div class="kpi-sub">{{kpi_regions_sub}}</div></div>
+      <div class="kpi"><div class="kpi-label">Developers</div><div class="kpi-value">{{kpi_developers}}</div><div class="kpi-sub">Major landlords</div></div>
+      <div class="kpi"><div class="kpi-label">Warehouse area</div><div class="kpi-value">{{kpi_wh_area}}</div><div class="kpi-sub">{{kpi_wh_area_sub}}</div></div>
+      <div class="kpi"><div class="kpi-label">Headline rent</div><div class="kpi-value">{{kpi_rent}}</div><div class="kpi-sub">{{kpi_rent_sub}}</div></div>
     </div>
   </div>
 </section>
@@ -1177,50 +1177,50 @@ footer .container{ color:var(--light-grey); }
   <div class="view-tabs" role="tablist">
     <button id="tab-grid" class="active" onclick="switchView('grid')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      <span data-i18n="tab_grid">Grid</span>
+      Grid
     </button>
     <button id="tab-map" onclick="switchView('map')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20L3 17V4l6 3 6-3 6 3v13l-6-3-6 3z"/><line x1="9" y1="7" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="17"/></svg>
-      <span data-i18n="tab_map">Map</span>
+      Map
     </button>
   </div>
 
   <div class="toolbar" role="region" aria-label="Filter properties">
     <div class="field">
-      <label class="field-label" for="f-search" data-i18n="filter_search_label">Search</label>
-      <input type="search" id="f-search" placeholder="Park, developer, city…" data-i18n-ph="filter_search_ph" autocomplete="off">
+      <label class="field-label" for="f-search">Search</label>
+      <input type="search" id="f-search" placeholder="Park, developer, city…" autocomplete="off">
     </div>
     <div class="field">
-      <label class="field-label" for="f-country" data-i18n="filter_country_label">Country</label>
-      <select id="f-country"><option value="" data-i18n="filter_country_all">All countries</option></select>
+      <label class="field-label" for="f-country">Country</label>
+      <select id="f-country"><option value="">All countries</option></select>
     </div>
     <div class="field">
-      <label class="field-label" for="f-city" data-i18n="filter_city_label">City</label>
-      <select id="f-city"><option value="" data-i18n="filter_city_all">All cities</option></select>
+      <label class="field-label" for="f-city">City</label>
+      <select id="f-city"><option value="">All cities</option></select>
     </div>
     <div class="field">
-      <label class="field-label" for="f-dev" data-i18n="filter_dev_label">Developer</label>
-      <select id="f-dev"><option value="" data-i18n="filter_dev_all">All developers</option></select>
+      <label class="field-label" for="f-dev">Developer</label>
+      <select id="f-dev"><option value="">All developers</option></select>
     </div>
     <div class="field">
-      <label class="field-label" for="f-size"><span data-i18n="filter_size_label">Min warehouse area</span> &nbsp;<span id="f-size-val" class="range-value"></span></label>
+      <label class="field-label" for="f-size">Min warehouse area &nbsp;<span id="f-size-val" class="range-value"></span></label>
       <div class="range-wrap"><input type="range" id="f-size" min="0" max="100" step="1" value="0"></div>
     </div>
-    <button id="f-reset" class="btn ghost" data-i18n="filter_reset">Reset</button>
+    <button id="f-reset" class="btn ghost">Reset</button>
   </div>
 
   <div class="result-meta">
-    <div class="count"><strong id="count-n">17</strong><span data-i18n="result_count_suffix">properties shown</span></div>
+    <div class="count"><strong id="count-n">17</strong>properties shown</div>
     <div class="sort-wrap">
-      <label for="sort" class="field-label" style="margin:0" data-i18n="sort_label">Sort</label>
+      <label for="sort" class="field-label" style="margin:0">Sort</label>
       <select id="sort">
-        <option value="id" data-i18n="sort_recommended">Recommended order</option>
-        <option value="size-desc" data-i18n="sort_size_desc">Warehouse area (largest)</option>
-        <option value="size-asc" data-i18n="sort_size_asc">Warehouse area (smallest)</option>
-        <option value="rent-asc" data-i18n="sort_rent_asc">Rent (lowest)</option>
-        <option value="rent-desc" data-i18n="sort_rent_desc">Rent (highest)</option>
-        <option value="city" data-i18n="sort_city">City (A–Z)</option>
-        <option value="dev" data-i18n="sort_dev">Developer (A–Z)</option>
+        <option value="id">Recommended order</option>
+        <option value="size-desc">Warehouse area (largest)</option>
+        <option value="size-asc">Warehouse area (smallest)</option>
+        <option value="rent-asc">Rent (lowest)</option>
+        <option value="rent-desc">Rent (highest)</option>
+        <option value="city">City (A–Z)</option>
+        <option value="dev">Developer (A–Z)</option>
       </select>
     </div>
   </div>
@@ -1228,8 +1228,8 @@ footer .container{ color:var(--light-grey); }
   <div id="view-grid">
     <div class="grid" id="grid"></div>
     <div class="empty" id="empty" style="display:none">
-      <h3 data-i18n="empty_title">No properties match your filters</h3>
-      <p data-i18n="empty_body">Try widening the warehouse-area range or clearing a filter.</p>
+      <h3>No properties match your filters</h3>
+      <p>Try widening the warehouse-area range or clearing a filter.</p>
     </div>
   </div>
 
@@ -1238,17 +1238,17 @@ footer .container{ color:var(--light-grey); }
       <div id="map"></div>
       <div class="map-side">
         <div class="map-legend">
-          <div class="legend-title"><span data-i18n="legend_layers">Layers</span> <span id="legend-mode" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)"></span></div>
+          <div class="legend-title">Layers <span id="legend-mode" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)"></span></div>
           <div class="poi-toggles" id="poi-toggles"></div>
           <div class="isochrone-ctrl">
-            <div class="label" data-i18n="iso_label">Drive-time rings around focused property</div>
+            <div class="label">Drive-time rings around focused property</div>
             <div class="iso-options">
-              <button data-iso="0" class="active" data-i18n="iso_off">Off</button>
-              <button data-iso="30" data-i18n="iso_30">30 min</button>
-              <button data-iso="60" data-i18n="iso_60">60 min</button>
-              <button data-iso="both" data-i18n="iso_both">Both</button>
+              <button data-iso="0" class="active">Off</button>
+              <button data-iso="30">30 min</button>
+              <button data-iso="60">60 min</button>
+              <button data-iso="both">Both</button>
             </div>
-            <div class="dist-caveat" style="margin-top:4px" data-i18n="iso_caveat">Rings show estimated reach at ~75 km/h motorway average with 1.25× winding factor. Actual routed drive times will vary.</div>
+            <div class="dist-caveat" style="margin-top:4px">Rings show estimated reach at ~75 km/h motorway average with 1.25× winding factor. Actual routed drive times will vary.</div>
           </div>
         </div>
         <div class="map-list" id="map-list"></div>
@@ -1261,8 +1261,8 @@ footer .container{ color:var(--light-grey); }
 <div class="compare-tray" id="tray">
   <div class="tray-items" id="tray-items"></div>
   <div class="tray-actions">
-    <button class="btn ghost" id="tray-clear" style="color:#fff;border-color:rgba(255,255,255,.3)" data-i18n="tray_clear">Clear</button>
-    <button class="btn accent" id="tray-open" data-i18n="tray_compare">Compare</button>
+    <button class="btn ghost" id="tray-clear" style="color:#fff;border-color:rgba(255,255,255,.3)">Clear</button>
+    <button class="btn accent" id="tray-open">Compare</button>
   </div>
 </div>
 
@@ -1270,17 +1270,17 @@ footer .container{ color:var(--light-grey); }
   <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
 </div>
 
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" data-i18n-al="lb_photo_viewer">
-  <button class="lb-close" id="lb-close" aria-label="Close" data-i18n-al="a11y_close">×</button>
-  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous photo" data-i18n-al="a11y_prev_photo">‹</button>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb-close" id="lb-close" aria-label="Close">×</button>
+  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous photo">‹</button>
   <img class="lb-img" id="lb-img" alt="">
-  <button class="lb-nav lb-next" id="lb-next" aria-label="Next photo" data-i18n-al="a11y_next_photo">›</button>
+  <button class="lb-nav lb-next" id="lb-next" aria-label="Next photo">›</button>
   <div class="lb-count" id="lb-count"></div>
 </div>
 
 <footer>
   <div class="container">
-    <div class="disclaimer" data-i18n="footer_disclaimer">All information provided by CBRE in this document is subject to change without notice. Rent levels, availability, technical specifications, coordinates and timing are indicative, based on landlord-provided data, and subject to negotiation. Drive-time estimates are calculated from great-circle distance with a 1.25× road winding factor at a 75 km/h motorway average and are for orientation only. Not for public distribution.</div>
+    <div class="disclaimer">All information provided by CBRE in this document is subject to change without notice. Rent levels, availability, technical specifications, coordinates and timing are indicative, based on landlord-provided data, and subject to negotiation. Drive-time estimates are calculated from great-circle distance with a 1.25× road winding factor at a 75 km/h motorway average and are for orientation only. Not for public distribution.</div>
     <div>{{footer_copyright}}</div>
   </div>
 </footer>
@@ -1295,15 +1295,6 @@ footer .container{ color:var(--light-grey); }
 /* @@INJECT:PROPS@@ */
 /* @@INJECT:POIS@@ */
 /* @@INJECT:REGIONS@@ */
-const UI = {{ui_json}};
-const LOCALE = "{{locale}}";
-const T = k => (UI && UI[k] != null) ? UI[k] : k;
-function applyI18n(root){
-  const r = root || document;
-  r.querySelectorAll('[data-i18n]').forEach(el => { const v = UI[el.getAttribute('data-i18n')]; if(v != null) el.textContent = v; });
-  r.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = UI[el.getAttribute('data-i18n-ph')]; if(v != null) el.setAttribute('placeholder', v); });
-  r.querySelectorAll('[data-i18n-al]').forEach(el => { const v = UI[el.getAttribute('data-i18n-al')]; if(v != null) el.setAttribute('aria-label', v); });
-}
 const ROUTES = {}; // cache: "lat1,lng1|lat2,lng2" → {km, min, real:true}
 async function fetchOsrmRoute(lat1, lng1, lat2, lng2){
   const key = `${lat1},${lng1}|${lat2},${lng2}`;
@@ -1331,7 +1322,7 @@ const state = { filters: { q:"", country:"", city:"", dev:"", size:0 }, sort:"id
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-const fmt = n => (typeof n === "number" && isFinite(n)) ? n.toLocaleString(LOCALE) : (n == null ? "tbd" : n);
+const fmt = n => (typeof n === "number" && isFinite(n)) ? n.toLocaleString("en-US") : (n == null ? "tbd" : n);
 
 const R = 6371;
 function haversine(lat1, lng1, lat2, lng2){
@@ -1342,10 +1333,10 @@ function haversine(lat1, lng1, lat2, lng2){
 }
 function estDriveMin(km){ return Math.round(km * 1.25 / 75 * 60); }
 const DIST_MODE = "{{dist_mode}}";
-const DIST_LABEL = { est:T("dist_label_est"), car:T("dist_label_car"), hgv:T("dist_label_hgv") };
-const DIST_BADGE = { est:T("dist_badge_est"), car:T("dist_badge_car"), hgv:T("dist_badge_hgv") };
+const DIST_LABEL = { est:"est.", car:"car", hgv:"HGV" };
+const DIST_BADGE = { est:"Straight-line estimates - not routed", car:"Car-routed drive times (OSRM)", hgv:"HGV / truck-routed drive times (openrouteservice)" };
 function fmtMin(min){
-  if(min < 60) return min + T("unit_min");
+  if(min < 60) return min + " min";
   const h = Math.floor(min/60), m = min%60;
   return m ? h+"h "+m+"m" : h+"h";
 }
@@ -1371,7 +1362,7 @@ function populateFilters(){
   // v7: country options derive from the injected data, never the template's market
   const ctys = [...new Set(PROPS.map(p=>p.country))].sort();
   let regionName = c => c;
-  try { const dn = new Intl.DisplayNames([LOCALE], {type:"region"}); regionName = c => { try { return dn.of(c) || c; } catch(e) { return c; } }; } catch(e) {}
+  try { const dn = new Intl.DisplayNames(["en"], {type:"region"}); regionName = c => { try { return dn.of(c) || c; } catch(e) { return c; } }; } catch(e) {}
   const ySel = $("#f-country");
   ctys.forEach(c => ySel.insertAdjacentHTML("beforeend", `<option value="${c}">${regionName(c)}</option>`));
   const cities = [...new Set(PROPS.map(p=>p.city))].sort();
@@ -1384,17 +1375,17 @@ function populateFilters(){
   adaptSingleCountryHeader();
 
   const poiCats = [
-    {t:"port", label:T("poi_port")},
-    {t:"rail", label:T("poi_rail")},
-    {t:"air",  label:T("poi_air")},
-    {t:"border", label:T("poi_border")},
-    {t:"city", label:T("poi_city")},
+    {t:"port", label:"Seaports"},
+    {t:"rail", label:"Rail terminals"},
+    {t:"air",  label:"Airports"},
+    {t:"border", label:"Border crossings"},
+    {t:"city", label:"Major cities"},
   ];
   const tog = $("#poi-toggles");
   tog.innerHTML = `
     <label class="poi-toggle" style="margin-bottom:8px;border-bottom:1px solid var(--line-soft);padding-bottom:10px">
       <span class="poi-dot prop-hu" style="margin-right:-2px"></span><span class="poi-dot prop-cz" style="margin-right:-2px"></span><span class="poi-dot prop-sk"></span>
-      <span style="flex:1">${T("legend_property_locations")}</span>
+      <span style="flex:1">Property locations</span>
       <span style="font-size:11px;color:var(--muted)">${PROPS.length}</span>
     </label>
   ` + poiCats.map(c => `
@@ -1461,8 +1452,9 @@ function adaptSingleCountryHeader(){
     if(ctys.length !== 1) return;
     let countriesTile = null, regionsTile = null;
     $$(".kpis .kpi").forEach(k => {
-      if(k.querySelector('.kpi-label[data-i18n="kpi_countries_label"]')) countriesTile = k;
-      if(k.querySelector('.kpi-label[data-i18n="kpi_regions_label"]')) regionsTile = k;
+      const lbl = ((k.querySelector(".kpi-label") || {}).textContent || "").trim();
+      if(lbl === "Countries") countriesTile = k;
+      if(lbl === "Regions") regionsTile = k;
     });
     if(countriesTile) countriesTile.remove();
     const names = regionDisplayNames();
@@ -1531,27 +1523,27 @@ function cardHTML(p){
   <article class="card ${isSel?'selected':''}" data-id="${p.id}">
     <div class="thumb" onclick="openModal(${p.id})">
       <img class="thumb-img" src="${gal(p)[0]}" alt="${p.park}" loading="lazy" data-i="0">
-      ${gal(p).length>1?`<button class="cm-nav cm-prev" aria-label="${T('a11y_prev_photo')}" onclick="event.stopPropagation();cardNav(${p.id},-1,this)">‹</button><button class="cm-nav cm-next" aria-label="${T('a11y_next_photo')}" onclick="event.stopPropagation();cardNav(${p.id},1,this)">›</button><span class="cm-count">1/${gal(p).length}</span>`:''}
+      ${gal(p).length>1?`<button class="cm-nav cm-prev" aria-label="Previous photo" onclick="event.stopPropagation();cardNav(${p.id},-1,this)">‹</button><button class="cm-nav cm-next" aria-label="Next photo" onclick="event.stopPropagation();cardNav(${p.id},1,this)">›</button><span class="cm-count">1/${gal(p).length}</span>`:''}
       <div class="ref"># ${String(p.id).padStart(2,'0')}</div>
       <div class="flag-chip ${p.country.toLowerCase()}">${p.country}</div>
       <div class="chip-city">${p.city}</div>
       <label class="compare-toggle" onclick="event.stopPropagation()">
         <input type="checkbox" ${isSel?'checked':''} onchange="toggleCompare(${p.id}, this.checked)">
-        ${T("card_compare")}
+        Compare
       </label>
     </div>
     <div class="card-body">
       <div class="dev-line">${p.developer} · ${p.motorway}</div>
       <h3 class="card-title">${p.park}</h3>
       <div class="spec-row">
-        <div class="spec"><div class="spec-k">${T("row_warehouse")}</div><div class="spec-v">${fmt(p.warehouseArea)} ${AREA_UNIT}</div></div>
-        <div class="spec"><div class="spec-k">${T("row_clear_height")}</div><div class="spec-v">${p.clearHeight}</div></div>
-        <div class="spec"><div class="spec-k">${T("row_status")}</div><div class="spec-v small">${p.status}</div></div>
-        <div class="spec"><div class="spec-k">${T("row_early_access")}</div><div class="spec-v">${p.earlyAccess}</div></div>
+        <div class="spec"><div class="spec-k">Warehouse</div><div class="spec-v">${fmt(p.warehouseArea)} ${AREA_UNIT}</div></div>
+        <div class="spec"><div class="spec-k">Clear height</div><div class="spec-v">${p.clearHeight}</div></div>
+        <div class="spec"><div class="spec-k">Status</div><div class="spec-v small">${p.status}</div></div>
+        <div class="spec"><div class="spec-k">Early access</div><div class="spec-v">${p.earlyAccess}</div></div>
       </div>
       <div class="card-footer">
         <div class="rent">${String(p.warehouseRent).replace(/([€£])(\d)/,'$1 $2').replace(/ \/ sq (m|ft) \/ year$/,'')}<span>/ ${p.rentUnit ? (p.rentUnit.split('/')[1] || RENT_PER) : RENT_PER} / yr</span>${(m=>m?`<small class="rent-mo">${m}</small>`:'')(rentMonthlyStr(p))}</div>
-        <button class="view-btn" onclick="openModal(${p.id})">${T("card_view_details")} <span class="arrow">→</span></button>
+        <button class="view-btn" onclick="openModal(${p.id})">View details <span class="arrow">→</span></button>
       </div>
     </div>
   </article>`;
@@ -1559,7 +1551,7 @@ function cardHTML(p){
 
 function toggleCompare(id, on){
   if(on){
-    if(state.compare.size >= 4){ alert(T("card_alert_max_compare")); applyFilters(); return; }
+    if(state.compare.size >= 4){ alert("You can compare up to 4 properties at a time."); applyFilters(); return; }
     state.compare.add(id);
   } else state.compare.delete(id);
   updateTray(); applyFilters();
@@ -1570,7 +1562,7 @@ function updateTray(){
   tray.classList.add("active");
   items.innerHTML = [...state.compare].map(id=>{
     const p = PROPS.find(x=>x.id===id);
-    return `<span class="tray-chip">${p.park} <button onclick="toggleCompare(${id}, false)" aria-label="${T('tray_remove')}">×</button></span>`;
+    return `<span class="tray-chip">${p.park} <button onclick="toggleCompare(${id}, false)" aria-label="Remove">×</button></span>`;
   }).join("");
 }
 
@@ -1587,7 +1579,7 @@ function initMap(){
     maxZoom: 19
   });
   streetsLayer.addTo(map);
-  L.control.layers({ [T("map_layer_streets")]: streetsLayer, [T("map_layer_satellite")]: satelliteLayer }, null, { position: 'topright', collapsed: false }).addTo(map);
+  L.control.layers({ "Streets": streetsLayer, "Satellite": satelliteLayer }, null, { position: 'topright', collapsed: false }).addTo(map);
 
   PROPS.forEach(p => {
     const icon = L.divIcon({
@@ -1629,7 +1621,7 @@ function propPopupHTML(p){
       <div class="popup-ref">№ ${String(p.id).padStart(2,'0')} · ${p.country} · ${p.city}</div>
       <h4 class="popup-title">${p.park}</h4>
       <div class="popup-meta">${p.developer} · ${fmt(p.warehouseArea)} ${AREA_UNIT} · ${p.motorway}</div>
-      <a href="#" class="popup-btn" onclick="event.preventDefault();openModal(${p.id})">${T("map_view_details")}</a>
+      <a href="#" class="popup-btn" onclick="event.preventDefault();openModal(${p.id})">View details</a>
     </div>
   `;
 }
@@ -1648,11 +1640,11 @@ function renderIsochrones(){
   const p = PROPS.find(x => x.id === state.focusedId);
   if(!p) return;
   const rings = [];
-  if(state.iso === "30" || state.iso === "both") rings.push({ r: 30000, color: "#17E88F", label: T("iso_30"), tip: T("iso_ring_30_tooltip") });
-  if(state.iso === "60" || state.iso === "both") rings.push({ r: 60000, color: "#003F2D", label: T("iso_60"), tip: T("iso_ring_60_tooltip") });
+  if(state.iso === "30" || state.iso === "both") rings.push({ r: 30000, color: "#17E88F", label: "30 min" });
+  if(state.iso === "60" || state.iso === "both") rings.push({ r: 60000, color: "#003F2D", label: "60 min" });
   rings.forEach(ring => {
     const c = L.circle([p.lat, p.lng], { radius: ring.r, color: ring.color, fillColor: ring.color, fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }).addTo(map);
-    c.bindTooltip(ring.tip || (ring.label + " reach (est.)"), { permanent: false });
+    c.bindTooltip(ring.label + " reach (est.)", { permanent: false });
     isoLayers.push(c);
   });
 }
@@ -1911,17 +1903,17 @@ async function computeAndDrawIsochrones(p){
   miniMap._ringLayers = [];
   if(data.poly60.length >= 8){
     const pg60 = L.polygon(data.poly60, { color:"#003F2D", fillColor:"#003F2D", fillOpacity:0.06, weight:1.5 }).addTo(miniMap);
-    pg60.bindTooltip(T("iso_ring_60_real"), { sticky:true });
+    pg60.bindTooltip("60 min drive reach (real road network)", { sticky:true });
     miniMap._ringLayers.push(pg60);
   }
   if(data.poly30.length >= 8){
     const pg30 = L.polygon(data.poly30, { color:"#17E88F", fillColor:"#17E88F", fillOpacity:0.1, weight:1.5 }).addTo(miniMap);
-    pg30.bindTooltip(T("iso_ring_30_real"), { sticky:true });
+    pg30.bindTooltip("30 min drive reach (real road network)", { sticky:true });
     miniMap._ringLayers.push(pg30);
   }
   const caveat = document.getElementById("modal-map-caveat");
   if(caveat){
-    caveat.innerHTML = `${T("coords_prefix")}: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : T("coords_not_located")}. <span style="color:var(--brand);font-weight:500">${T("coords_rings_real")}</span> ${T("coords_rings_real_suffix")}`;
+    caveat.innerHTML = `Coordinates: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : "not yet located (see Gaps Report)"}. <span style="color:var(--brand);font-weight:500">● Green and dark polygons show real 30 min and 60 min drive-time reach</span> computed from the OSRM road network. Use the top-right control to switch to satellite.`;
   }
 }
 /* v9: dataset-wide field presence - a variable NO input ever carried renders
@@ -1964,7 +1956,7 @@ function totalRentStr(p, monthly){
   if(annual === null) return null;
   const v = monthly ? annual / 12 : annual;
   const cur = ((p.rentUnit || (RENT_CUR + "/x/yr")).split("/")[0] || RENT_CUR).trim();
-  return cur + " " + Math.round(v).toLocaleString(LOCALE) + (monthly ? " / mo" : " / yr");
+  return cur + " " + Math.round(v).toLocaleString("en-US") + (monthly ? " / mo" : " / yr");
 }
 /* GLA (total internal area) = warehouse + office (+ any other building area). Plot is
    LAND, not GLA. null when there is no numeric warehouse area. */
@@ -1982,10 +1974,10 @@ function detailHTML(p){
     return s === "" || s === "tbd" || s === "tbc" || s === "—" || s === "-";
   };
   const row = (k,v,key) => (key && !FIELD_PRESENT[key]) ? `` : isTbd(v)
-    ? `<div class="spec"><div class="spec-k">${k}</div><div class="spec-v" style="color:var(--muted)">${T("val_tbc")}</div></div>`
+    ? `<div class="spec"><div class="spec-k">${k}</div><div class="spec-v" style="color:var(--muted)">TBC</div></div>`
     : `<div class="spec"><div class="spec-k">${k}</div><div class="spec-v">${v}</div></div>`;
   const d = groupedDistances(p);
-  const catMeta = { city:T("poi_city"), border:T("poi_border"), air:T("poi_air"), rail:T("poi_rail"), port:T("poi_port") };
+  const catMeta = { city:"Major cities", border:"Border crossings", air:"Airports", rail:"Rail terminals", port:"Seaports" };
   const poiIdx = (name) => POIS.findIndex(x => x.name === name);
   const allBaked = !!(p.preBaked && p.preBaked.distances);
   const distSection = ["city","border","air","rail","port"].map(cat => `
@@ -2000,9 +1992,9 @@ function detailHTML(p){
   `).join("");
   const distStatusHtml = allBaked
     ? (DIST_MODE === "hgv"
-        ? `<span style="color:var(--brand);font-weight:500">${T('dist_status_hgv_lead')}</span> ${T('dist_status_hgv_rest')}`
-        : `<span style="color:var(--brand);font-weight:500">${T('dist_status_car_lead')}</span> ${T('dist_status_car_rest')}`)
-    : T("dist_status_est");
+        ? `<span style="color:var(--brand);font-weight:500">● HGV / truck-routed distances from openrouteservice.</span> Distances reflect the actual road network for trucks. Border wait times not included.`
+        : `<span style="color:var(--brand);font-weight:500">● Car-routed distances from OSRM.</span> Distances reflect the actual road network. Truck/HGV times are not modelled; border wait times not included.`)
+    : `Distances shown as great-circle estimates. Fetching live car-routed drive times from OSRM (truck/HGV times are not modelled)…`;
   const reg = REGIONS[p.regionCode] || null;
   const dist = p.district || null;
   const rNum = v => (v == null || (typeof v === 'number' && isNaN(v))) ? 'tbd' : v;
@@ -2013,11 +2005,11 @@ function detailHTML(p){
     : ((typeof p.lat === "number" && typeof p.lng === "number") ? `https://www.google.com/maps?q=${p.lat},${p.lng}` : null);
 
   return `
-    <button class="modal-close" onclick="closeModal()" aria-label="${T('a11y_close')}">×</button>
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
     <div class="modal-hero">
       <img id="modal-img" src="${gal(p)[0]}" alt="${p.park}" data-i="0">
-      ${gal(p).length>1?`<button class="cm-nav cm-prev" id="modal-prev" aria-label="${T('a11y_prev_photo')}">‹</button><button class="cm-nav cm-next" id="modal-next" aria-label="${T('a11y_next_photo')}">›</button><span class="cm-count" id="modal-count">1 / ${gal(p).length}</span>`:''}
-      ${p.plan ? `<div class="image-toggle"> <button class="active" data-view="photo">${T("img_toggle_photo")}</button> <button data-view="plan">${T("img_toggle_plan")}</button> </div>` : ''}
+      ${gal(p).length>1?`<button class="cm-nav cm-prev" id="modal-prev" aria-label="Previous photo">‹</button><button class="cm-nav cm-next" id="modal-next" aria-label="Next photo">›</button><span class="cm-count" id="modal-count">1 / ${gal(p).length}</span>`:''}
+      ${p.plan ? '<div class="image-toggle"> <button class="active" data-view="photo">Aerial / Render</button> <button data-view="plan">Site Plan</button> </div>' : ''}
     </div>
     <div class="modal-body">
       <div class="modal-head">
@@ -2027,64 +2019,64 @@ function detailHTML(p){
           <span>${p.city}</span>
           <span>${p.motorway}</span>
           <span>${p.status}</span>
-          <span>${T("modal_early_access_prefix")} ${p.earlyAccess}</span>
+          <span>Early access ${p.earlyAccess}</span>
           ${p.breeam ? `<span>${p.breeam}</span>` : ''}
-          ${mapHref ? `<span><a class="map-link" href="${mapHref}" target="_blank" rel="noopener">${T("modal_open_maps")}</a></span>` : ''}
+          ${mapHref ? `<span><a class="map-link" href="${mapHref}" target="_blank" rel="noopener">Open in Google Maps ↗</a></span>` : ''}
         </div>
       </div>
 
-      ${p.coordsApprox ? `<div class="approx-note">${T("modal_approx_note")}</div>` : ''}
+      ${p.coordsApprox ? `<div class="approx-note">Coordinates are approximate — exact site location to be confirmed by developer.</div>` : ''}
 
       ${isTbd(p.description) ? '' : `<p class="desc">${p.description}</p>`}
 
-      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">${T("sec_availability")}</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
-        row(T('row_total_gla'), glaStr(p), 'warehouseArea'),
-        row(T('row_warehouse_area'), fmt(p.warehouseArea) + ' ' + AREA_UNIT, 'warehouseArea'),
-        row(T('row_office_area'), p.officeArea, 'officeArea'),
-        row(T('row_plot_area'), p.plotArea ? fmt(p.plotArea) + ' ' + AREA_UNIT : '—', 'plotArea'),
-        row(T('row_divisible_from'), p.divisibleFrom, 'divisibleFrom'),
-        row(T('row_expansion_building'), p.expansionBuilding, 'expansionBuilding'),
-        row(T('row_expansion_park'), p.expansionPark, 'expansionPark'),
-        row(T('row_landlord'), p.landlord, 'landlord'),
-        row(T('row_property_status'), p.status, 'status'),
-        row(T('row_permitting'), p.permitting, 'permitting'),
-        row(T('row_early_access_date'), p.earlyAccess, 'earlyAccess'),
+      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">Availability &amp; Site</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
+        row('Total GLA', glaStr(p), 'warehouseArea'),
+        row('Warehouse area', fmt(p.warehouseArea) + ' ' + AREA_UNIT, 'warehouseArea'),
+        row('Office area', p.officeArea, 'officeArea'),
+        row('Plot area', p.plotArea ? fmt(p.plotArea) + ' ' + AREA_UNIT : '—', 'plotArea'),
+        row('Divisible from', p.divisibleFrom, 'divisibleFrom'),
+        row('Expansion in building', p.expansionBuilding, 'expansionBuilding'),
+        row('Expansion in park', p.expansionPark, 'expansionPark'),
+        row('Landlord', p.landlord, 'landlord'),
+        row('Property status', p.status, 'status'),
+        row('Permitting', p.permitting, 'permitting'),
+        row('Early access date', p.earlyAccess, 'earlyAccess'),
       ].join(''))}
 
-      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">${T("sec_technical")}</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
-        row(T('row_clear_height'), p.clearHeight, 'clearHeight'),
-        row(T('row_floor_load'), p.floorLoad, 'floorLoad'),
-        row(T('row_sprinklers'), p.sprinklers, 'sprinklers'),
-        row(T('row_loading_docks'), p.loadingDocks, 'loadingDocks'),
-        row(T('row_overhead_doors'), p.overheadDoors, 'overheadDoors'),
-        row(T('row_electricity'), p.electricity, 'electricity'),
-        row(T('row_truck_parking'), p.truckParking, 'truckParking'),
-        row(T('row_car_parking'), p.carParking, 'carParking'),
+      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">Technical Specification</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
+        row('Clear height', p.clearHeight, 'clearHeight'),
+        row('Floor load', p.floorLoad, 'floorLoad'),
+        row('Sprinklers', p.sprinklers, 'sprinklers'),
+        row('Loading docks', p.loadingDocks, 'loadingDocks'),
+        row('Overhead doors', p.overheadDoors, 'overheadDoors'),
+        row('Electricity', p.electricity, 'electricity'),
+        row('Truck parking', p.truckParking, 'truckParking'),
+        row('Car parking', p.carParking, 'carParking'),
       ].join(''))}
 
-      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">${T("sec_commercial")}</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
-        row(T('row_warehouse_rent'), p.warehouseRent, 'warehouseRent'),
-        row(T('row_warehouse_rent_monthly'), rentMonthlyStr(p) || '—', 'warehouseRent'),
-        row(T('row_total_annual_rent'), totalRentStr(p,false) || '—', 'warehouseRent'),
-        row(T('row_total_monthly_rent'), totalRentStr(p,true) || '—', 'warehouseRent'),
-        row(T('row_office_rent'), p.officeRent, 'officeRent'),
-        row(T('row_service_charge'), p.serviceCharge, 'serviceCharge'),
-        row(T('row_land_price'), p.landPrice, 'landPrice'),
-        p.leaseTerm ? row(T('row_lease_term'), p.leaseTerm, 'leaseTerm') : '',
-        p.rentFree ? row(T('row_rent_free'), p.rentFree, 'rentFree') : '',
-        p.incentives && p.incentives !== 'Not mentioned in first offer' ? row(T('row_incentives'), p.incentives, 'incentives') : '',
-        p.reit ? row(T('row_reit'), p.reit, 'reit') : '',
+      ${(rowsHtml => rowsHtml ? `<h3 class="section-title">Commercial Terms (Headline)</h3><div class="spec-grid">${rowsHtml}</div>` : '')([
+        row('Warehouse rent', p.warehouseRent, 'warehouseRent'),
+        row('Warehouse rent (monthly)', rentMonthlyStr(p) || '—', 'warehouseRent'),
+        row('Total annual rent', totalRentStr(p,false) || '—', 'warehouseRent'),
+        row('Total monthly rent', totalRentStr(p,true) || '—', 'warehouseRent'),
+        row('Office rent', p.officeRent, 'officeRent'),
+        row('Service charge', p.serviceCharge, 'serviceCharge'),
+        row('Land price', p.landPrice, 'landPrice'),
+        p.leaseTerm ? row('Lease term', p.leaseTerm, 'leaseTerm') : '',
+        p.rentFree ? row('Rent-free period', p.rentFree, 'rentFree') : '',
+        p.incentives && p.incentives !== 'Not mentioned in first offer' ? row('Incentives', p.incentives, 'incentives') : '',
+        p.reit ? row('REIT', p.reit, 'reit') : '',
       ].join(''))}
 
-      <h3 class="section-title">${T("sec_location")}</h3>
+      <h3 class="section-title">Location &amp; Reach</h3>
       <div class="loc-layout">
         <div>
           <div id="modal-map"></div>
-          <div class="dist-caveat" id="modal-map-caveat" style="margin-top:8px">${T("coords_prefix")}: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : T("coords_not_located")}. ${T("coords_rings_est")}</div>
+          <div class="dist-caveat" id="modal-map-caveat" style="margin-top:8px">Coordinates: ${typeof p.lat === "number" ? p.lat.toFixed(5) + ", " + p.lng.toFixed(5) : "not yet located (see Gaps Report)"}. Green ring ≈ 30 min reach, dark ring ≈ 60 min reach (estimated — fetching real isochrones…). Use the top-right control to switch to satellite.</div>
         </div>
         <div>
           <table class="dist-table">
-            <thead><tr><th>${T("dist_th_destination")}</th><th style="text-align:right">${T("dist_th_distance")}</th><th style="text-align:right">${T("dist_th_drive_time")} (${DIST_LABEL[DIST_MODE]||'est.'})</th></tr></thead>
+            <thead><tr><th>Destination</th><th style="text-align:right">Distance</th><th style="text-align:right">Drive time (${DIST_LABEL[DIST_MODE]||'est.'})</th></tr></thead>
             <tbody id="dist-tbody">${distSection}</tbody>
           </table>
           <div class="dist-badge" style="font-size:11px;color:var(--muted);margin-top:6px">${DIST_BADGE[DIST_MODE]||DIST_BADGE.est}</div>
@@ -2092,24 +2084,24 @@ function detailHTML(p){
         </div>
       </div>
 
-      <h3 class="section-title">${T("sec_workforce")}</h3>
+      <h3 class="section-title">Workforce &amp; Region</h3>
       ${(reg || dist) ? `
       <div class="region-block">
         ${dist ? `<div class="district-panel">
           <div class="district-head">
             <div>
-              <div class="district-label">${T("wf_district_label")}</div>
+              <div class="district-label">District-level labour market</div>
               <div class="district-name">${rStr(dist.district)}</div>
             </div>
             <div class="district-metric">
               <div class="metric-value">${rNum(dist.unemployment)}<span class="unit">%</span></div>
-              <div class="metric-label">${T("wf_unemployment")} · ${rStr(dist.asOf)}</div>
+              <div class="metric-label">Unemployment · ${rStr(dist.asOf)}</div>
             </div>
           </div>
           ${dist.applicantsPerVacancy ? `
           <div class="district-sub">
-            <span class="apv-chip">${dist.applicantsPerVacancy} ${T('wf_applicants_suffix')}</span>
-            <span class="apv-meaning">${dist.applicantsPerVacancy < 3 ? T('wf_market_tight') : dist.applicantsPerVacancy < 8 ? T('wf_market_balanced') : T('wf_market_deep')}</span>
+            <span class="apv-chip">${dist.applicantsPerVacancy} applicants / vacancy</span>
+            <span class="apv-meaning">${dist.applicantsPerVacancy < 3 ? 'Tight labour market' : dist.applicantsPerVacancy < 8 ? 'Balanced' : 'Deep labour pool available'}</span>
           </div>` : ''}
           ${dist.note ? `<p class="district-note">${dist.note}</p>` : ''}
         </div>` : ''}
@@ -2145,21 +2137,21 @@ function detailHTML(p){
           <div class="region-country">${rStr(reg.country)}</div>
         </div>
         <div class="region-grid">
-          ${stat(T('wf_regional_unemployment'), (typeof reg.unemployment === 'number') ? rNum(reg.unemployment) : null, T('wf_unit_pct'), reg.unemploymentAsOf)}
-          ${stat(T('wf_population'), (typeof reg.population === 'number') ? rK(reg.population) : null, '', reg.populationAsOf ? `${T('wf_as_of_prefix')} ${reg.populationAsOf}` : '')}
-          ${stat(T('wf_labour_force'), (typeof reg.labourForce === 'number') ? rK(reg.labourForce) : null, '', T('wf_economically_active'))}
-          ${stat(T('wf_employment_rate'), (typeof reg.employmentRate === 'number') ? rNum(reg.employmentRate) : null, T('wf_unit_pct'), T('wf_age_20_64'))}
-          ${stat(T('wf_gdp_per_capita'), (typeof reg.gdpPpsEu === 'number') ? rNum(reg.gdpPpsEu) : null, T('wf_unit_pct_eu27'), reg.gdpPpsAsOf ? `${T('wf_pps_prefix')}, ${reg.gdpPpsAsOf}` : T('wf_pps_prefix'))}
-          ${stat(T('wf_gdp_nominal'), gdp, '', reg.gdpAsOf || baselineAsOf)}
-          ${stat(T('wf_manufacturing_employment'), (typeof reg.emplManufacturing === 'number') ? rK(reg.emplManufacturing) : null, '', T('wf_persons_employed'))}
-          ${stat(T('wf_transport_storage_employment'), (typeof reg.emplTransportStorage === 'number') ? rK(reg.emplTransportStorage) : null, '', T('wf_persons_employed'))}
-          ${stat(T('wf_logistics_share'), (logiShare !== null) ? rNum(logiShare) : null, T('wf_unit_pct'), T('wf_logistics_sub'))}
+          ${stat('Regional unemployment', (typeof reg.unemployment === 'number') ? rNum(reg.unemployment) : null, '%', reg.unemploymentAsOf)}
+          ${stat('Population', (typeof reg.population === 'number') ? rK(reg.population) : null, '', reg.populationAsOf ? `As of ${reg.populationAsOf}` : '')}
+          ${stat('Labour force', (typeof reg.labourForce === 'number') ? rK(reg.labourForce) : null, '', 'Economically active')}
+          ${stat('Employment rate', (typeof reg.employmentRate === 'number') ? rNum(reg.employmentRate) : null, '%', 'Age 20–64')}
+          ${stat('GDP per capita', (typeof reg.gdpPpsEu === 'number') ? rNum(reg.gdpPpsEu) : null, '% EU27', reg.gdpPpsAsOf ? `PPS, ${reg.gdpPpsAsOf}` : 'PPS')}
+          ${stat('GDP (nominal)', gdp, '', reg.gdpAsOf || baselineAsOf)}
+          ${stat('Manufacturing employment', (typeof reg.emplManufacturing === 'number') ? rK(reg.emplManufacturing) : null, '', 'Persons employed')}
+          ${stat('Transport &amp; storage employment', (typeof reg.emplTransportStorage === 'number') ? rK(reg.emplTransportStorage) : null, '', 'Persons employed')}
+          ${stat('Logistics employment share', (logiShare !== null) ? rNum(logiShare) : null, '%', 'Transport &amp; storage share of the labour force')}
         </div>
         ${!isAbsent(reg.notes) ? `<p class="region-notes">${reg.notes}</p>` : ''}
-        ${!isAbsent(reg.sources) ? `<div class="region-sources"><strong>${T("wf_sources")}</strong> ${reg.sources}</div>` : ''}`;
+        ${!isAbsent(reg.sources) ? `<div class="region-sources"><strong>Sources:</strong> ${reg.sources}</div>` : ''}`;
         })() : ''}
       </div>
-      ` : `<p class="desc" style="color:var(--muted)">${T("wf_empty")}</p>`}
+      ` : `<p class="desc" style="color:var(--muted)">Workforce and regional labour data not yet added for this option — see the Gaps Report.</p>`}
     </div>
   `;
 }
@@ -2168,7 +2160,7 @@ function initModalMap(p){
   const el = document.getElementById("modal-map");
   if(!el) return;
   if(typeof p.lat !== "number" || typeof p.lng !== "number"){ /* v7: not yet located - honest note, no crash */
-    el.innerHTML = `<p class="desc" style="padding:12px;color:var(--muted)">${T('map_not_confirmed')}</p>`;
+    el.innerHTML = '<p class="desc" style="padding:12px;color:var(--muted)">Location not yet confirmed - see the Gaps Report.</p>';
     return; }
   miniMap = L.map("modal-map", { zoomControl: true, scrollWheelZoom: false }).setView([p.lat, p.lng], 9);
   const mStreets = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
@@ -2178,7 +2170,7 @@ function initModalMap(p){
     attribution: 'Esri', maxZoom: 19
   });
   mStreets.addTo(miniMap);
-  L.control.layers({ [T("map_layer_streets")]: mStreets, [T("map_layer_satellite")]: mSatellite }, null, { position: 'topright', collapsed: false }).addTo(miniMap);
+  L.control.layers({ "Streets": mStreets, "Satellite": mSatellite }, null, { position: 'topright', collapsed: false }).addTo(miniMap);
   const icon = L.divIcon({ className:"", html:`<div class="cm prop-${p.country.toLowerCase()}">${p.id}</div>`, iconSize:[24,24], iconAnchor:[12,12] });
   L.marker([p.lat, p.lng], { icon }).addTo(miniMap);
   miniMap._ringLayers = [];
@@ -2248,7 +2240,7 @@ function closeLightbox(){ $("#lightbox").style.display = "none"; }
 function lbOpen(){ return $("#lightbox").style.display === "flex"; }
 
 function openCompare(){
-  if(state.compare.size < 2){ alert(T("cmp_alert_min_two")); return; }
+  if(state.compare.size < 2){ alert("Select at least two properties to compare."); return; }
   const items = [...state.compare].map(id => PROPS.find(p=>p.id===id));
   $("#modal").innerHTML = compareHTML(items);
   $("#modal-backdrop").classList.add("active");
@@ -2262,45 +2254,45 @@ function openCompare(){
 function compareHTML(items){
   /* v9: a compare row whose field NO input ever carried is dropped (FIELD_PRESENT) */
   const rows = [
-    [T('cmp_country'), p=>p.country, 'country'],
-    [T('cmp_city'), p=>p.city, 'city'],
-    [T('cmp_developer'), p=>p.developer, 'developer'],
-    [T('row_landlord'), p=>p.landlord, 'landlord'],
-    [T('cmp_motorway'), p=>p.motorway, 'motorway'],
-    [T('cmp_status'), p=>p.status, 'status'],
-    [T('cmp_early_access'), p=>p.earlyAccess, 'earlyAccess'],
-    [T('row_permitting'), p=>p.permitting, 'permitting'],
-    [T('row_total_gla'), p=>glaStr(p), 'warehouseArea'],
-    [T('row_warehouse_area'), p=>fmt(p.warehouseArea)+' '+AREA_UNIT, 'warehouseArea'],
-    [T('row_office_area'), p=>p.officeArea, 'officeArea'],
-    [T('row_plot_area'), p=>p.plotArea ? fmt(p.plotArea)+' '+AREA_UNIT : '—', 'plotArea'],
-    [T('row_divisible_from'), p=>p.divisibleFrom, 'divisibleFrom'],
-    [T('row_expansion_building'), p=>p.expansionBuilding, 'expansionBuilding'],
-    [T('row_expansion_park'), p=>p.expansionPark, 'expansionPark'],
-    [T('row_clear_height'), p=>p.clearHeight, 'clearHeight'],
-    [T('row_floor_load'), p=>p.floorLoad, 'floorLoad'],
-    [T('row_sprinklers'), p=>p.sprinklers, 'sprinklers'],
-    [T('row_loading_docks'), p=>p.loadingDocks, 'loadingDocks'],
-    [T('row_overhead_doors'), p=>p.overheadDoors, 'overheadDoors'],
-    [T('row_electricity'), p=>p.electricity, 'electricity'],
-    [T('row_truck_parking'), p=>p.truckParking, 'truckParking'],
-    [T('row_car_parking'), p=>p.carParking, 'carParking'],
-    [T('row_warehouse_rent'), p=>p.warehouseRent, 'warehouseRent'],
-    [T('row_warehouse_rent_monthly'), p=>rentMonthlyStr(p) || '—', 'warehouseRent'],
-    [T('row_total_annual_rent'), p=>totalRentStr(p,false) || '—', 'warehouseRent'],
-    [T('row_total_monthly_rent'), p=>totalRentStr(p,true) || '—', 'warehouseRent'],
-    [T('row_office_rent'), p=>p.officeRent, 'officeRent'],
-    [T('row_service_charge'), p=>p.serviceCharge, 'serviceCharge'],
-    [T('row_lease_term'), p=>p.leaseTerm || '—', 'leaseTerm'],
-    [T('row_rent_free'), p=>p.rentFree || '—', 'rentFree'],
-    [T('cmp_certification'), p=>p.breeam || '—', 'breeam'],
+    ['Country', p=>p.country, 'country'],
+    ['City', p=>p.city, 'city'],
+    ['Developer', p=>p.developer, 'developer'],
+    ['Landlord', p=>p.landlord, 'landlord'],
+    ['Motorway', p=>p.motorway, 'motorway'],
+    ['Status', p=>p.status, 'status'],
+    ['Early access', p=>p.earlyAccess, 'earlyAccess'],
+    ['Permitting', p=>p.permitting, 'permitting'],
+    ['Total GLA', p=>glaStr(p), 'warehouseArea'],
+    ['Warehouse area', p=>fmt(p.warehouseArea)+' '+AREA_UNIT, 'warehouseArea'],
+    ['Office area', p=>p.officeArea, 'officeArea'],
+    ['Plot area', p=>p.plotArea ? fmt(p.plotArea)+' '+AREA_UNIT : '—', 'plotArea'],
+    ['Divisible from', p=>p.divisibleFrom, 'divisibleFrom'],
+    ['Expansion in building', p=>p.expansionBuilding, 'expansionBuilding'],
+    ['Expansion in park', p=>p.expansionPark, 'expansionPark'],
+    ['Clear height', p=>p.clearHeight, 'clearHeight'],
+    ['Floor load', p=>p.floorLoad, 'floorLoad'],
+    ['Sprinklers', p=>p.sprinklers, 'sprinklers'],
+    ['Loading docks', p=>p.loadingDocks, 'loadingDocks'],
+    ['Overhead doors', p=>p.overheadDoors, 'overheadDoors'],
+    ['Electricity', p=>p.electricity, 'electricity'],
+    ['Truck parking', p=>p.truckParking, 'truckParking'],
+    ['Car parking', p=>p.carParking, 'carParking'],
+    ['Warehouse rent', p=>p.warehouseRent, 'warehouseRent'],
+    ['Warehouse rent (monthly)', p=>rentMonthlyStr(p) || '—', 'warehouseRent'],
+    ['Total annual rent', p=>totalRentStr(p,false) || '—', 'warehouseRent'],
+    ['Total monthly rent', p=>totalRentStr(p,true) || '—', 'warehouseRent'],
+    ['Office rent', p=>p.officeRent, 'officeRent'],
+    ['Service charge', p=>p.serviceCharge, 'serviceCharge'],
+    ['Lease term', p=>p.leaseTerm || '—', 'leaseTerm'],
+    ['Rent-free period', p=>p.rentFree || '—', 'rentFree'],
+    ['Certification', p=>p.breeam || '—', 'breeam'],
   ].filter(r => !r[2] || FIELD_PRESENT[r[2]]);
   const distRows = [
-    [T('cmp_nearest_city'), p=>{ const d = groupedDistances(p).city[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
-    [T('cmp_nearest_border'), p=>{ const d = groupedDistances(p).border[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
-    [T('cmp_nearest_airport'), p=>{ const d = groupedDistances(p).air[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
-    [T('cmp_nearest_rail'), p=>{ const d = groupedDistances(p).rail[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
-    [T('cmp_nearest_seaport'), p=>{ const d = groupedDistances(p).port[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
+    ['Nearest major city', p=>{ const d = groupedDistances(p).city[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
+    ['Nearest border', p=>{ const d = groupedDistances(p).border[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
+    ['Nearest airport', p=>{ const d = groupedDistances(p).air[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
+    ['Nearest rail', p=>{ const d = groupedDistances(p).rail[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
+    ['Nearest seaport', p=>{ const d = groupedDistances(p).port[0]; if(!d) return 'tbd'; return `${d.name.replace(/\s*\([^)]*\)\s*$/,'')} · ${d.km} km (~${fmtMin(d.min)})`; }],
   ];
   const allRows = [...rows, ...distRows];
   const minSizeIdx = items.reduce((best,p,i)=> p.warehouseArea > items[best].warehouseArea ? i : best, 0);
@@ -2310,22 +2302,22 @@ function compareHTML(items){
     (typeof p.warehouseRentVal === 'number' && isFinite(p.warehouseRentVal)
       && (best < 0 || p.warehouseRentVal < items[best].warehouseRentVal)) ? i : best, -1);
   return `
-    <button class="modal-close" onclick="closeModal()" aria-label="${T('a11y_close')}">×</button>
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
     <div class="modal-body">
       <div class="modal-head">
-        <div class="modal-dev">${T("cmp_side_by_side")}</div>
-        <h2 class="modal-title">${items.length} ${T("cmp_properties_compared_suffix")}</h2>
-        <div class="modal-meta"><span>${T("cmp_highlight_note")}</span></div>
+        <div class="modal-dev">Side-by-side comparison</div>
+        <h2 class="modal-title">${items.length} properties compared</h2>
+        <div class="modal-meta"><span>Largest warehouse and lowest rent highlighted</span></div>
       </div>
       <div class="cmp-table-wrap">
         <table class="cmp-table">
-          <thead><tr><th style="min-width:170px">${T("cmp_attribute")}</th>${items.map(p=>`<th>${p.park}<span class="cmp-city">${p.country} · ${p.city} · ${p.developer}</span></th>`).join('')}</tr></thead>
+          <thead><tr><th style="min-width:170px">Attribute</th>${items.map(p=>`<th>${p.park}<span class="cmp-city">${p.country} · ${p.city} · ${p.developer}</span></th>`).join('')}</tr></thead>
           <tbody>
             ${allRows.map(([label, fn])=>`
               <tr><th>${label}</th>${items.map((p,i)=>{
                 let hl = '';
-                if(label===T('row_warehouse_area') && i===minSizeIdx) hl='cmp-highlight';
-                if((label===T('row_warehouse_rent') || label===T('row_warehouse_rent_monthly')) && i===minRentIdx) hl='cmp-highlight';
+                if(label==='Warehouse area' && i===minSizeIdx) hl='cmp-highlight';
+                if((label==='Warehouse rent' || label==='Warehouse rent (monthly)') && i===minRentIdx) hl='cmp-highlight';
                 return `<td class="${hl}">${fn(p)}</td>`;
               }).join('')}</tr>
             `).join('')}
@@ -2336,11 +2328,10 @@ function compareHTML(items){
   `;
 }
 
-applyI18n(document);
 populateFilters();
 applyFilters();
 
-(function(){ const lm = document.getElementById("legend-mode"); if(lm){ const tag = { est:T("legend_mode_est"), car:T("legend_mode_car"), hgv:T("legend_mode_hgv") }; lm.textContent = tag[DIST_MODE] || tag.est; } })();
+(function(){ const lm = document.getElementById("legend-mode"); if(lm){ const tag = { est:"(est. drive times)", car:"(car-baked drive times)", hgv:"(HGV-baked drive times)" }; lm.textContent = tag[DIST_MODE] || tag.est; } })();
 
 $("#f-search").addEventListener("input", e => { state.filters.q = e.target.value; applyFilters(); });
 $("#f-country").addEventListener("change", e => { state.filters.country = e.target.value; applyFilters(); });

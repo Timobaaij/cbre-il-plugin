@@ -31,11 +31,14 @@ DATA_MARKERS = {
 }
 
 # every {{token}} the template expects build_dashboard.py to fill
+# v19 externalises chrome strings into an injected JSON block ({{ui_json}}) + a
+# BCP-47 {{locale}}; the template's app <script> reads `const UI = {{ui_json}}` and
+# `const LOCALE = "{{locale}}"`, then localises chrome at render via data-i18n*/T().
 CONFIG_TOKENS = [
     "topbar_meta", "eyebrow", "title_html", "lede", "footer_copyright",
     "kpi_properties", "kpi_countries", "kpi_regions", "kpi_developers",
     "kpi_wh_area", "kpi_rent", "kpi_countries_sub", "kpi_regions_sub",
-    "kpi_wh_area_sub", "kpi_rent_sub", "dist_mode",
+    "kpi_wh_area_sub", "kpi_rent_sub", "dist_mode", "ui_json", "locale",
 ]
 
 

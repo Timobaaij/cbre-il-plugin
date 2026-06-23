@@ -15,6 +15,7 @@ market:
 output:
   filename: "CBRE_Property_Dashboard_Normal.html"
   compiled_date: "2026-04-23"  # ISO; defaults to today if blank
+  language: "English"          # Stage 0 Q3: dashboard CHROME language (see "Dashboard language" below)
 inputs:
   folder: "."
   present_types: ["pdf", "pptx"]   # auto-filled by intake
@@ -44,6 +45,17 @@ qa:
 ```
 
 (The template version is **not** a `project.yaml` setting - the chrome is pinned by `assets/VERSION` and enforced by `gate_runner.py validate-html`, which fails the build if the template's SHA-256 drifts from the recorded `chrome_sha256`. Nothing client-specific pins it.)
+
+## Dashboard language (`output.language`, Stage 0 Q3)
+`output.language` chooses the language of the dashboard CHROME (the fixed UI vocabulary: tabs, filters, sort options, the KPI strip labels, section titles, row labels, the compare table, map controls, the footer disclaimer). It accepts an English name ("German"), an endonym ("Deutsch") or an ISO code ("de"); blank or "English" means English. **Any European Latin-script language works** - 12 are bundled (instant); any other SUPPORTED one is translated once in Cowork and cached (the exit-11 fallback). See `reference/localisation.md` for the full supported-vs-bundled list, the cache, exit 11 and the G-i18n gate.
+
+The flow is: `run.py` reads `output.language` (the `--language` flag overrides it) and passes it to `merge.py`, which stamps it on `canonical.json` as `meta.language` (and an optional explicit `meta.locale`, a BCP-47 tag such as `de-AT`). At build time `build_dashboard.render()` resolves `meta.language` to the bundled chrome table in `helpers/i18n.py` and injects it into the page as a compact, sorted JSON block (the `{{ui_json}}` token) plus a `{{locale}}` for number and country-name formatting. The page applies the table to the static chrome once on load and reads it for every dynamically built card, modal and compare row.
+
+Two safety properties hold by construction:
+- **Per-key English fall-back.** `i18n.py` carries a COMPLETE English baseline; every other language is layered on top key by key. A language not yet translated, or a single missing key, falls back to the English text - never a blank, never a raw key. (English + 11 European languages are bundled as `assets/i18n/*.json`; any other SUPPORTED European Latin-script language is translated on demand and cached - see `reference/localisation.md`.)
+- **DATA is never translated.** Only chrome is localised. Property, developer, landlord, region, city and POI names, every figure, date, unit and source citation, and the canonical `tbd` / `—` sentinel all stay exactly as sourced. The build is deterministic: the same `canonical.json` and language always produce byte-identical HTML, so `validate-html` re-running the render still passes.
+
+Because `project.yaml` is a merge input, changing the language re-runs the cached merge (and rebuild) on the next pass.
 
 ## Auto-discovery (`intake.py`)
 Globs the folder for `*.pdf *.pptx *.xlsx *.msg *.eml` and images; infers a city/region cluster per brochure from its filename (`Normal Options - Pilsen.pdf` -> Pilsen) and the country from `assets/poi_library.json`'s `city_country` index (a CEE-seeded **convenience** - a miss leaves `??`); writes `inventory.json`; scaffolds `project.yaml` pre-filled from what was found (incl. `inputs.emails.source` defaulted to `folder` when `.msg`/`.eml` are present in the folder, else `none`). Confirm the inferred clusters and countries before extracting - and a remaining `??` is filled automatically by `enrich.py --geocode`, which reverse-geocodes the country code from the resolved coordinates (any geography, no index needed).

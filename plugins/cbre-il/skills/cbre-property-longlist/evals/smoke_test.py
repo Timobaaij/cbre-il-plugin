@@ -152,7 +152,8 @@ def main() -> int:
     # v9 template guards: dataset-wide field presence + present-only workforce tiles
     if "const FIELD_PRESENT" not in tpl:
         fails.append("template missing the v9 FIELD_PRESENT map (dataset-empty variables must not render)")
-    if "stat('GDP (nominal)'" not in tpl or "emplManufacturing" not in tpl:
+    # v19: the tile LABELS are now localised via T('KEY') (the tile still exists, now keyed)
+    if "stat(T('wf_gdp_nominal')" not in tpl or "emplManufacturing" not in tpl:
         fails.append("template missing the v9 Oxecon workforce tiles (nominal GDP / employment)")
     if '<div class="region-k">Employment rate</div>' in tpl:
         fails.append("template still hardcodes the Employment-rate tile (v9 regression - tiles must be value-gated)")
@@ -163,7 +164,8 @@ def main() -> int:
     # replaced by a logistics-employment-share tile derived from two dataset figures
     if "reg.avgWageGross" in tpl or "Avg monthly gross wage" in tpl:
         fails.append("template still renders the avg-gross-wage tile (v11 regression - wage was removed)")
-    if "const logiShare" not in tpl or "Logistics employment share" not in tpl:
+    # v19: the tile label is localised (T('wf_logistics_share')); the derivation const stays
+    if "const logiShare" not in tpl or "T('wf_logistics_share')" not in tpl:
         fails.append("template missing the v11 logistics-employment-share tile (transport&storage / labour force)")
     if "reg.avgWageNote" in tpl or "reg.minWageNote" in tpl:
         fails.append("template still renders the wage-note source appendix (v11 regression)")
@@ -189,7 +191,8 @@ def main() -> int:
         fails.append("template missing the v13 single-country header adaptation")
     if "function rentMonthlyStr(" not in tpl or "const RENT_CUR" not in tpl:
         fails.append("template missing the v13 monthly-rent helper (rentMonthlyStr / RENT_CUR)")
-    if "Warehouse rent (monthly)" not in tpl or 'class="rent-mo"' not in tpl:
+    # v19: the monthly-rent row label is localised via T('row_warehouse_rent_monthly')
+    if "T('row_warehouse_rent_monthly')" not in tpl or 'class="rent-mo"' not in tpl:
         fails.append("template missing the v13 monthly-rent rows/markup")
     # the monthly rent must round-trip into the built HTML for a rent-bearing property
     if "/ mo" not in html:
@@ -202,7 +205,8 @@ def main() -> int:
     # v14 template guards: TOTAL rent (GLA x rate) on top of the per-area rate
     if "function totalAnnualRent(" not in tpl or "function totalRentStr(" not in tpl:
         fails.append("template missing the v14 total-rent helpers (totalAnnualRent / totalRentStr)")
-    if "Total annual rent" not in tpl or "Total monthly rent" not in tpl:
+    # v19: the row labels are localised via T('KEY') (the rows still exist, now keyed)
+    if "T('row_total_annual_rent')" not in tpl or "T('row_total_monthly_rent')" not in tpl:
         fails.append("template missing the v14 total-rent rows ('Total annual rent' / 'Total monthly rent')")
     if "officeRentVal" not in tpl or "officeAreaVal" not in tpl:
         fails.append("template total-rent maths does not reference officeRentVal/officeAreaVal (the split)")
@@ -229,10 +233,19 @@ def main() -> int:
         fails.append("template missing the v17 {{dist_mode}} config token")
     if "const DIST_MODE" not in tpl or "const DIST_BADGE" not in tpl or "const DIST_LABEL" not in tpl:
         fails.append("template missing the v17 DIST_MODE/DIST_LABEL/DIST_BADGE machinery")
-    if "Drive time (${DIST_LABEL[DIST_MODE]" not in tpl:
+    # v19: the "Drive time" label is localised (T('dist_th_drive_time')); the DIST_LABEL
+    # mode suffix is preserved
+    if 'T("dist_th_drive_time")} (${DIST_LABEL[DIST_MODE]' not in tpl:
         fails.append("template Drive-time column header is not mode-aware (v17: must suffix DIST_LABEL[DIST_MODE])")
-    if "Truck/HGV times are not modelled" not in tpl:
-        fails.append("template live-status does not disclose that truck/HGV times are not modelled (v17)")
+    # v19: the live-status disclosure strings moved into i18n.EN; FIX 2 split the baked
+    # car/HGV line into a brand-green lead + plain rest, so the template calls
+    # T('dist_status_car_lead')/_rest + T('dist_status_est'); disclosure preserved, now keyed.
+    import i18n as _I18N_v17
+    if "T('dist_status_car_lead')" not in tpl and "T(\"dist_status_car_lead\")" not in tpl:
+        fails.append("template live-status is not keyed to T('dist_status_car_lead') (v19)")
+    if "truck/hgv times are not modelled" not in _I18N_v17.EN.get("dist_status_car_rest", "").lower() \
+            or "truck/hgv times are not modelled" not in _I18N_v17.EN.get("dist_status_est", "").lower():
+        fails.append("i18n.EN no longer discloses that truck/HGV times are not modelled (v17)")
     # the no-enrichment smoke fixture (no meta.enrichment) must label as straight-line estimates
     if 'const DIST_MODE = "est";' not in html:
         fails.append('v17: a no-enrichment build did not render const DIST_MODE = "est"')
@@ -255,10 +268,12 @@ def main() -> int:
     # FIELD_PRESENT['landlord'] so a no-landlord dataset renders no landlord row
     # (the modal/compare are CLIENT-SIDE JS, so these rows live in the TEMPLATE; the
     # landlord VALUE rides inside the PROPS data block - no new {{config}} token).
-    if "row('Landlord', p.landlord, 'landlord')" not in tpl:
-        fails.append("template missing the v18 modal Landlord row (FIELD_PRESENT-gated row('Landlord', p.landlord, 'landlord'))")
-    if "['Landlord', p=>p.landlord, 'landlord']" not in tpl:
-        fails.append("template missing the v18 compare Landlord row (['Landlord', p=>p.landlord, 'landlord'])")
+    # v19: the Landlord label is localised via T('row_landlord'); the FIELD_PRESENT
+    # gating key ('landlord') is unchanged, so the row still hides on a no-landlord dataset
+    if "row(T('row_landlord'), p.landlord, 'landlord')" not in tpl:
+        fails.append("template missing the v18 modal Landlord row (FIELD_PRESENT-gated row(T('row_landlord'), p.landlord, 'landlord'))")
+    if "[T('row_landlord'), p=>p.landlord, 'landlord']" not in tpl:
+        fails.append("template missing the v18 compare Landlord row ([T('row_landlord'), p=>p.landlord, 'landlord'])")
     # the landlord must NOT leak onto the card hero line, the filters, the search index
     # or the sort (the card stays clean; developer remains the primary axis).
     import re as _re18

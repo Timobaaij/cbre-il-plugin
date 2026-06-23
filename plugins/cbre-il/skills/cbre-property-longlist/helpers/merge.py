@@ -32,6 +32,7 @@ import match
 import normalize as N
 import images as IMG
 import extract_pdf as XP  # best_description_in_deck for the photo-match path
+import i18n as I18N        # Phase 2: EN key whitelist for the --ui-overrides bake
 
 COMMERCIAL = {"warehouseRent", "warehouseRentVal", "officeRent", "serviceCharge",
               "leaseTerm", "rentFree", "incentives", "landPrice"}
@@ -928,6 +929,18 @@ def main() -> None:
     ap.add_argument("--project-yaml")
     ap.add_argument("--out", required=True)
     ap.add_argument("--ledger")
+    ap.add_argument("--language", default="", help="dashboard chrome language (Stage-0 Q3) "
+                    "-> meta.language; the builder resolves it to the i18n table at render "
+                    "time (per-key English fallback). Blank -> English.")
+    ap.add_argument("--locale", default="", help="optional explicit BCP-47 locale "
+                    "-> meta.locale (e.g. de-AT); blank -> the language's default region.")
+    ap.add_argument("--ui-overrides", dest="ui_overrides", default="", help="Phase-2 FALLBACK "
+                    "chrome translation cache (work/i18n/<code>.json) for a SUPPORTED-but-not-"
+                    "bundled language. When it loads + is a non-empty dict, its EN-keyed entries "
+                    "are baked into meta.ui_overrides (a leading _en_sha / any _* meta key and "
+                    "any non-EN/DATA key are dropped) so render() reproduces the fallback from "
+                    "canonical alone. Blank/absent/invalid -> meta.ui_overrides is NOT set "
+                    "(byte-identical to the bundled/EN path).")
     ap.add_argument("--requirements", help="JSON file of client questionnaire requirements -> meta.requirements")
     ap.add_argument("--image-budget-kb", type=int, default=IMG.DEFAULT_BUDGET_KB)
     ap.add_argument("--image-cache", help="dir for the persistent hero-image cache "
@@ -1265,7 +1278,27 @@ def main() -> None:
         # the dataset's unit convention (source units KEPT) - the builder formats
         # the hero KPI strip and its sub-labels from this
         "units": {"area": area_unit, "rent": rent_unit},
+        # dashboard chrome language (Stage-0 Q3). OPTIONAL + default-safe: absent ->
+        # "English" -> en. The builder resolves it to the i18n table at render time
+        # (per-key English fallback); DATA is never translated.
+        "language": (args.language or "English"),
     }
+    # an explicit BCP-47 locale (e.g. de-AT) overrides the language's default region
+    if str(getattr(args, "locale", "") or "").strip():
+        meta["locale"] = args.locale.strip()
+    # Phase 2 (fallback): bake the translate-once cache into meta.ui_overrides so the
+    # fallback chrome rides canonical and render()/validate-html reproduce it byte-for-
+    # byte. ONLY keys that exist in i18n.EN are kept - a leading _en_sha (or any _* meta
+    # key) and any stray/DATA key are dropped, never injected; CHROME only, never data.
+    # Optional + default-safe: blank/absent/unloadable/empty -> the key is NOT set, so
+    # the bundled/EN path is byte-identical to Phase 1.
+    _ui_ov_path = str(getattr(args, "ui_overrides", "") or "").strip()
+    if _ui_ov_path:
+        _loaded = I18N.load_fallback_cache(_ui_ov_path)
+        if isinstance(_loaded, dict) and _loaded:
+            _baked = {k: v for k, v in _loaded.items() if k in I18N.EN}
+            if _baked:
+                meta["ui_overrides"] = _baked
     # carry the client's questionnaire requirements through, if any (the orchestrator
     # uses them for the size-slider default and hard-requirement flags). Not injected
     # into the HTML - meta is audit/orchestrator data, so this never affects the chrome.

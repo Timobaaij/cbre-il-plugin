@@ -78,6 +78,18 @@ never misdiagnose):
       plausibility gate (else precedence stands). With no grey pairs AND no value conflicts
       (the common case) this never fires; offline (no decisions files) the deterministic
       matcher + the fixed precedence are the fallbacks.
+ 11 = dashboard-language FALLBACK needed: the chosen language is a SUPPORTED European
+      Latin-script language that is NOT one of the bundled 12, and there is no valid
+      work-dir translation cache yet. The spine writes a request manifest
+      work/i18n/<code>_request.json ({code, language, locale, en_sha, instructions,
+      strings: the 175 EN chrome strings}) and exits 11. Dispatch an ISOLATED translation
+      sub-agent: translate every value to <language>, keep the JSON keys + the
+      {area}/{unit} placeholders + the &amp;/glyph/CBRE/OSRM/BREEAM/etc. invariants, add
+      "_en_sha":"<en_sha>", save the flat {key:value} to work/i18n/<code>.json, then re-run
+      the SAME command (the cache is baked into canonical.meta.ui_overrides by merge and
+      reproduced byte-for-byte by render/validate-html). Blind-verify it as G-i18n before
+      shipping. Decline with `type nul > work/i18n/<code>.SKIP` to fall back to English. An
+      UNSUPPORTED language (non-Latin / nonsense) never fires this - it renders English.
 
 Each stage runs IN-PROCESS: the helper modules are imported once and their
 main() is called directly, rather than spawning a fresh `python` subprocess per
@@ -508,6 +520,9 @@ def main() -> None:
     ap.add_argument("--pois", action="store_true")
     ap.add_argument("--osrm", action="store_true")
     ap.add_argument("--regions", action="store_true")
+    ap.add_argument("--language", default="",
+                    help="dashboard chrome language (Stage-0 Q3). Overrides project.yaml "
+                         "output.language; blank = use project.yaml (default English).")
     ap.add_argument("--quiet", action="store_true",
                     help="Cowork/broker mode: print only short plain-English step markers, swallow sub-output")
     ap.add_argument("--resume", dest="resume", action="store_true", default=True,
@@ -550,6 +565,7 @@ def main() -> None:
     import deliver
     import enrich
     import gate_runner
+    import i18n as I18N        # Phase 2: SUPPORTED/needs_fallback + the exit-11 fallback step
     import intake
     import ledger
     import merge
@@ -604,6 +620,84 @@ def main() -> None:
               else f"NOTE: skipped {len(_dups)} byte-identical duplicate input(s): {_dmsg}")
     cfg = load_yaml(proj)
     enr = cfg.get("enrichment", {})
+    # dashboard chrome language (Stage-0 Q3): the --language flag overrides project.yaml
+    # output.language; blank in both -> English. project.yaml is already a merge input,
+    # so a changed language invalidates the cached merge (the resume predicate re-fires).
+    lang = args.language or (cfg.get("output", {}) or {}).get("language", "English")
+
+    # --- Phase 2: non-bundled-language FALLBACK (exit 11; mirrors exit 3/9/10) -------
+    # Runs on EVERY invocation, BEFORE the expensive merge/enrich, so it fails fast. A
+    # language OUTSIDE the bundled 12 but still SUPPORTED (any European Latin-script
+    # language) is translated ONCE in Cowork, cached in the work dir, then baked into
+    # canonical.meta.ui_overrides by merge (--ui-overrides) so render()/validate-html
+    # reproduce it byte-for-byte from canonical. Graceful: an UNSUPPORTED language (non-
+    # Latin / nonsense) -> EN (no request, a printed note); a .SKIP decline -> EN; a
+    # missing/corrupt cache -> re-request (or EN once declined) - never a crash.
+    ui_overrides_cache = None  # set to the cache Path when a valid fallback cache exists
+    code = I18N.normalize_lang(lang)
+    if I18N.needs_fallback(lang):
+        i18n_dir = work / "i18n"
+        cache = i18n_dir / f"{code}.json"
+        skip = i18n_dir / f"{code}.SKIP"
+        request = i18n_dir / f"{code}_request.json"
+        want_sha = I18N.en_sha()
+        have = I18N.load_fallback_cache(cache) if cache.exists() else None
+        have_sha = None
+        if cache.exists():
+            try:
+                have_sha = json.loads(cache.read_text(encoding="utf-8")).get("_en_sha")
+            except Exception:
+                have_sha = None
+        if skip.exists():
+            # the orchestrator declined the translate round -> render in English. Honest
+            # note so the broker is never surprised by an English dashboard for a non-EN ask.
+            print((f"Note: '{lang}' is a supported language but isn't bundled, and a translation "
+                   f"was declined (work/i18n/{code}.SKIP) - the dashboard will be in English.")
+                  if QUIET else
+                  f"NOTE: fallback declined for '{lang}' ({code}.SKIP present) -> English chrome.")
+        elif have is not None and have_sha == want_sha:
+            # a valid, current cache exists -> thread it into the merge bake (below)
+            ui_overrides_cache = cache
+        else:
+            # no valid/current cache -> write the request manifest, instruct, and exit 11.
+            # A stale cache (EN changed -> have_sha != want_sha) is re-requested the same way.
+            i18n_dir.mkdir(parents=True, exist_ok=True)
+            manifest = {
+                "code": code,
+                "language": lang,
+                "locale": I18N.locale_for(lang),
+                "en_sha": want_sha,
+                "instructions": (
+                    f"Translate EVERY value in `strings` to {lang}. Keep the JSON KEYS exactly; "
+                    "keep the {area}/{unit} placeholders, the &amp;/&lt;/&gt; HTML entities, any "
+                    "leading glyph (e.g. the '●' bullet), and the invariants CBRE / OSRM / "
+                    "BREEAM / HGV / PPS / EU27 / REIT / km verbatim. Do NOT translate DATA or the "
+                    "'tbd'/'—' sentinel. Add a top-level \"_en_sha\":\"" + want_sha + "\" key, "
+                    f"write the flat {{key: value}} (+ _en_sha) to work/i18n/{code}.json, then re-run "
+                    "the SAME command. (Or `type nul > work/i18n/" + code + ".SKIP` to fall back to "
+                    "English.) Blind-verify it as G-i18n (an ISOLATED reviewer, not the translator) "
+                    "before shipping."
+                ),
+                "cache_path": str(cache),
+                "skip_path": str(skip),
+                "strings": I18N.EN,
+            }
+            request.write_text(json.dumps(manifest, ensure_ascii=False, indent=2),
+                               encoding="utf-8")
+            stale = cache.exists() and have_sha != want_sha
+            _stale_quiet = "(The English baseline changed, so the old translation is stale.) " if stale else ""
+            _stale_orch = " and the cache is STALE (EN changed)" if stale else ""
+            if QUIET:
+                print(f"'{lang}' isn't one of the built-in dashboard languages, so I need it "
+                      f"translated once. {_stale_quiet}I've written what to translate to {request}.")
+            else:
+                print(f"\nLANGUAGE FALLBACK NEEDED: '{lang}' ({code}) is supported but not "
+                      f"bundled{_stale_orch}. Dispatch a translation sub-agent: translate the "
+                      f"strings in {request} to {lang}, save the flat {{key:value}} (+ "
+                      f"\"_en_sha\":\"{want_sha}\") to {cache}, then re-run the SAME command. "
+                      f"(Or `type nul > {skip}` to fall back to English.) Blind-verify it as "
+                      f"G-i18n before shipping.")
+            sys.exit(11)
 
     # PREFLIGHT ROADMAP: a deterministic plan from what intake ACTUALLY found, so the
     # orchestrator starts knowing what is there and which handoffs to expect (which exit
@@ -1559,10 +1653,31 @@ def main() -> None:
     ledger_csv = work / "source_ledger.csv"
     merge_args = ["--records", *record_files, "--source-dir", folder,
                   "--project-yaml", proj, "--out", canonical, "--ledger", ledger_csv,
+                  # dashboard chrome language (Stage-0 Q3) -> meta.language; the builder
+                  # resolves it to the i18n table at render time (per-key EN fallback)
+                  "--language", lang,
                   # persistent hero cache: a re-run reuses identical image bytes
                   # instead of re-rastering + re-compressing every brochure page
                   "--image-cache", work / ".image_cache"]
     merge_inputs = [*record_files, proj]
+    # LANGUAGE as a merge resume key: the resolved `lang` is passed to merge_args, but on a
+    # --resume run the --language FLAG can override project.yaml WITHOUT changing proj's
+    # bytes - so without this the merge would resume a STALE-language build. Thread the
+    # resolved language through a tiny work-dir file (mirrors requirements.json /
+    # field_decisions.json): a changed value bumps its mtime via _write_if_changed ->
+    # merge is no longer current -> re-fires -> canonical changes -> build re-runs. The
+    # project.yaml output.language path still invalidates too (proj is already an input).
+    lang_file = work / ".language"
+    _write_if_changed(lang_file, lang)
+    merge_inputs.append(lang_file)
+    # Phase 2 (fallback): a valid translate-once cache for a non-bundled language -> bake
+    # it into canonical.meta.ui_overrides via merge (--ui-overrides), AND add the cache to
+    # merge_inputs so a CHANGED translation re-fires merge (-> canonical changes -> build
+    # re-runs) - mirrors the .language / requirements.json resume threading above. Absent
+    # (bundled/EN, or the exit-11 path already returned) -> not passed -> Phase-1 path.
+    if ui_overrides_cache is not None and Path(ui_overrides_cache).exists():
+        merge_args += ["--ui-overrides", ui_overrides_cache]
+        merge_inputs.append(ui_overrides_cache)
     if requirements:  # carry the questionnaire's requirements into canonical.meta
         req_file = work / "requirements.json"
         _write_if_changed(req_file, json.dumps(requirements, ensure_ascii=False, indent=2))
@@ -1951,7 +2066,12 @@ def main() -> None:
     # Stage 6 - post-build gates (mechanical; G-visual runs separately via MCP)
     step("Final checks") if QUIET else print("\n=== POST-BUILD GATES ===")
     g2 = [run_gate(gate_runner, "validate-html", built, "--canonical", canonical),
-          run_gate(gate_runner, "reconcile", built, "--canonical", canonical)]
+          run_gate(gate_runner, "reconcile", built, "--canonical", canonical),
+          # G-i18n deterministic floor: the rendered chrome is complete + actually
+          # localised for the resolved language (no silent EN fallback, no unfilled
+          # token, well-formed LOCALE, placeholders intact). The blind LLM G-i18n
+          # rubric is its live Cowork counterpart (reference/gates.md).
+          run_gate(gate_runner, "i18n", built, "--canonical", canonical)]
     write_scorecard(work / "gate2_scorecard.md", "Post-build gate scorecard (mechanical)")
     if any(rc != 0 for rc in g2):
         # a red post-build gate means the built file is wrong - never deliver it

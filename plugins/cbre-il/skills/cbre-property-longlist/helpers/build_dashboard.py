@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _common as C
+import i18n as I18N
 
 
 def _fmt_thousands_k(lo: float, hi: float) -> str:
@@ -34,7 +35,12 @@ def _fmt_thousands_k(lo: float, hi: float) -> str:
     return f"{one(lo)} - {one(hi)}k"
 
 
-def compute_kpis(props: list[dict], regions: dict, units: dict | None = None) -> dict:
+def compute_kpis(props: list[dict], regions: dict, units: dict | None = None,
+                 ui: dict | None = None) -> dict:
+    # ui = the localised chrome dict (i18n.ui_for); the three sub-labels below are
+    # CHROME (localised), the figures/enumerations they wrap are DATA (untouched).
+    ui = ui or {}
+
     def distinct(key):
         return [v for v in {p.get(key) for p in props if p.get(key)}]
 
@@ -71,13 +77,13 @@ def compute_kpis(props: list[dict], regions: dict, units: dict | None = None) ->
         "kpi_wh_area": _fmt_thousands_k(min(areas), max(areas)) if areas else "tbd",
         "kpi_rent": ((f"{cur}{min(rents):g}" if min(rents) == max(rents)
                       else f"{cur}{min(rents):g} - {max(rents):g}") if rents else "tbd"),
-        "kpi_wh_area_sub": f"{area_unit} per building",
-        "kpi_rent_sub": f"per {per} / year",
+        "kpi_wh_area_sub": (ui.get("kpi_wh_area_sub_fmt") or "{area} per building").format(area=area_unit),
+        "kpi_rent_sub": (ui.get("kpi_rent_sub_fmt") or "per {unit} / year").format(unit=per),
         "kpi_countries_sub": " · ".join(sorted(set(countries))) if countries else "tbd",
         # ALWAYS static: region labels are often derived from source-file names
         # (intake clustering), so enumerating them leaked filename junk into the
         # hero KPI strip on a real run. The count carries the information.
-        "kpi_regions_sub": "Under consideration",
+        "kpi_regions_sub": ui.get("kpi_regions_sub") or "Under consideration",
     }
     return kpis
 
@@ -88,7 +94,26 @@ def render(data: dict, strict: bool = True) -> tuple[str, dict]:
     props = [C.fill_render_sentinels(dict(p)) for p in data["properties"]]
     pois = data.get("pois", [])
     regions = data.get("regions", {})
-    hero = (data.get("meta", {}) or {}).get("hero", {}) or {}
+    meta = data.get("meta", {}) or {}
+    hero = meta.get("hero", {}) or {}
+
+    # v19 localisation: resolve the chosen language -> a COMPLETE chrome dict (EN-
+    # filled per key) + a BCP-47 locale. Missing language / missing key both fall
+    # back to English; this resolves INSIDE render() so validate-html (which re-runs
+    # render) stays byte-stable for a given canonical+language.
+    #
+    # Phase 2 (fallback): a SUPPORTED-but-not-bundled language carries its translated
+    # chrome on canonical.meta.ui_overrides (baked there by merge.py from the work-dir
+    # cache). Layering it HERE - the single render() both build() and gate_runner
+    # validate-html call - is what keeps the fallback byte-stable: validate-html
+    # re-runs render(canonical) and asserts byte-equality, so anything render consumes
+    # for a language MUST be derivable from canonical alone (ui_overrides rides
+    # canonical). Absent/invalid ui_overrides -> overrides=None -> Phase-1 path, byte-
+    # identical to the bundled/EN build. ui_for() honours ONLY keys present in EN.
+    ov = meta.get("ui_overrides") or None
+    ui = I18N.ui_for(meta.get("language") or "en",
+                     overrides=ov if isinstance(ov, dict) else None)
+    locale = I18N.locale_for(meta.get("language") or "en", meta.get("locale"))
 
     template = C.load_template()
 
@@ -104,12 +129,22 @@ def render(data: dict, strict: bool = True) -> tuple[str, dict]:
     # the distance/drive-time columns honestly (est. = straight-line, car / HGV =
     # routed). Only a completed OSRM bake (osrm AND osrm_done) earns car/hgv; an
     # --osrm run that baked nothing, or a geocode/pois-only build, degrades to est.
-    enr = (data.get("meta") or {}).get("enrichment", {}) or {}
+    enr = meta.get("enrichment", {}) or {}
     tokens["dist_mode"] = (
         ("hgv" if "hgv" in str(enr.get("routing", "")).lower() else "car")
         if (enr.get("osrm") and enr.get("osrm_done")) else "est"
     )
-    tokens.update(compute_kpis(props, regions, (data.get("meta", {}) or {}).get("units")))
+    # v19 i18n tokens. ui_json is the chrome dict as COMPACT JSON, sort_keys for
+    # determinism (byte-stable ui_json per language); ensure_ascii so any non-ASCII
+    # endonym/label is \uXXXX-escaped. < and > are escaped to < / > so the
+    # JSON cannot break out of the <script> block. NOT quoted (it is a JS object
+    # literal); locale IS quoted in the template.
+    ui_body = json.dumps(ui, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+    bs = chr(92)
+    ui_body = ui_body.replace("<", bs + "u003c").replace(">", bs + "u003e")
+    tokens["ui_json"] = ui_body
+    tokens["locale"] = locale
+    tokens.update(compute_kpis(props, regions, meta.get("units"), ui))
 
     out = template
     for tok in C.CONFIG_TOKENS:
