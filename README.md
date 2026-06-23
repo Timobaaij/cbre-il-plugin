@@ -18,17 +18,42 @@ Once it's installed, just describe what you need and Claude runs the right skill
 ## Install
 
 **In Claude Cowork:** open **Customize → Plugins → ＋ → Add marketplace → Add from a
-repository**, enter `timobaaij/cbre-il-plugin`, then install **CBRE I&L Toolkit**.
+repository**, enter `Timobaaij/cbre-il-plugin`, then install **CBRE I&L Toolkit**.
 
 **In Claude Code (CLI):**
 
 ```
-/plugin marketplace add timobaaij/cbre-il-plugin
+/plugin marketplace add Timobaaij/cbre-il-plugin
 /plugin install cbre-il@cbre
 ```
 
-To get updates later: re-sync the marketplace (Cowork) or run
-`/plugin marketplace update cbre` (CLI).
+## Updating
+
+Each release bumps the plugin `version`, and Claude Code only swaps in a new copy
+when that version changes — see the [CHANGELOG](./CHANGELOG.md) for what shipped.
+
+**The reliable way to update (recommended):** remove the marketplace and add it
+again. This forces a fresh copy and always lands the latest version.
+
+- **Cowork:** Customize → Plugins → remove **CBRE I&L Toolkit** / its marketplace,
+  then re-add it with the steps above.
+- **CLI:**
+  ```
+  /plugin marketplace remove cbre
+  /plugin marketplace add Timobaaij/cbre-il-plugin
+  /plugin install cbre-il@cbre
+  ```
+
+Then restart Claude so the refreshed skills load.
+
+> **Why remove-and-re-add rather than the in-place "update" button?** Claude Code's
+> in-place marketplace refresh and plugin auto-update are currently unreliable —
+> they can report success or "already up to date" while leaving you on the old
+> version ([claude-code#35752](https://github.com/anthropics/claude-code/issues/35752),
+> [#61854](https://github.com/anthropics/claude-code/issues/61854)). A fresh add is
+> a clean clone and sidesteps the issue. If you prefer the in-place CLI path you can
+> still try `/plugin marketplace update cbre` followed by `/plugin update cbre-il@cbre`,
+> but verify the version actually changed.
 
 ---
 
@@ -43,7 +68,12 @@ claude plugin validate .
 claude --plugin-dir ./plugins/cbre-il
 ```
 
-Bump `version` in both `plugin.json` and `marketplace.json` when you ship changes.
+When you ship changes: bump `version` in **both** `plugin.json` and
+`marketplace.json` (keep them in sync — `plugin.json` wins), add an entry to the
+[CHANGELOG](./CHANGELOG.md), and tag the release (`git tag v0.3.6 && git push origin v0.3.6`).
+The version bump is what tells installed clients they are out of date, so a release
+without it is invisible to existing users.
+
 Build artifacts (`__pycache__/`, `*.pyc`, `*.bak`) are kept out of git by the root
 `.gitignore`; note the GitHub web upload UI bypasses `.gitignore`, so commit from a
 clean tree.
