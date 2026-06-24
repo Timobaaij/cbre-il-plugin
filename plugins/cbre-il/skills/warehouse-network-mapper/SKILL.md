@@ -40,7 +40,7 @@ If no anchor figure exists, say so, and report coverage confidence from the brea
 Lock these before dispatching anything. They flow through every downstream stage and must not drift.
 
 - **Company.** Plus every legal entity, brand, fascia and former name. A retailer trades under fascia that differ from the parent; search must cover all of them.
-- **Scope.** The list of countries. Europe-wide is the common case; a single country is allowed. Do not silently expand or narrow it.
+- **Scope.** A geographic region, not the company's operating footprint. "Europe-wide" means every European market, by default the EU-27 plus the UK, Norway and Switzerland, and it always includes the logistics gateways (Netherlands, Belgium, Germany, Poland) even when the company has no stores or offices there. This matters: a company frequently runs its central European DC, a bonded or port-of-entry import warehouse (Rotterdam, Antwerp, Hamburg) or a 3PL-shared hub in a country where it does not trade, and those are often the largest sites in the whole network. **Never narrow the search to "countries [company] operates in"**; that single move structurally hides the most valuable DCs. A single named country is allowed when the user explicitly asks for one. Confirm the region as "all European markets, not only where [company] trades", and otherwise do not expand or narrow it.
 - **Units.** Ask the user to choose **metric (sqm)** or **imperial (sq ft)** before the run. This is the unit the Size column and the size floor are expressed in, and the unit `units.py` converts every sourced figure into. Default metric. Always confirm, because the audience (UK vs Continental) usually has a strong preference and converting after the fact loses the raw basis.
 - **Size floor.** Default **5,000 sqm (about 54,000 sq ft)**. Below this you drown in parcel depots, store stockrooms and last-mile lockers. State it in the chosen unit; confirm or override with the user.
 - **Facility whitelist.** Default: national DC (NDC), regional DC (RDC), European DC (EDC), fulfilment centre, cold/chilled/frozen store, cross-dock, returns/reverse logistics, parts/spares. Excludes retail stockrooms, offices and pure last-mile micro-sites unless the user asks for them. Tune the whitelist to the client (a grocer needs cold-store granularity; an apparel brand needs returns).
@@ -57,13 +57,15 @@ Produce:
 - **Identity set.** Legal entities, brands/fascia, former names, ticker if listed.
 - **Known 3PL partners.** Search for the company's logistics providers explicitly (DHL, Kuehne+Nagel, GXO, DSV, ID Logistics, FM Logistic, Wincanton, Rhenus, DB Schenker, CEVA, Geodis, and any named in the company's own filings). Half the network may sit under these names. This list is handed to every research subagent.
 - **Anchor figure(s).** The company's own stated count of DCs / fulfilment centres / logistics sqm / countries served, with source, **overall and per country/region wherever stated**. A per-country anchor turns the Coverage sheet from one weak global ratio into a real gate per market. If none exists, record that.
-- **Footprint priors.** Where the company is known to be heavy or light, to inform batching density.
+- **Footprint priors.** Where the company is known to be heavy or light, to inform batching density. This is *retail/operating* presence; warehousing presence can differ entirely, so the gateway countries (Netherlands, Belgium, Germany, Poland) are must-search regardless of whether the company trades there.
+- **Import and gateway hypothesis.** From where the company sources or imports (the Far East via Rotterdam/Antwerp/Hamburg, for example) and its likely inland hubs, name the countries most likely to hold a central EDC or port-of-entry DC even with no retail presence, and ensure they are in scope and batched. State this hypothesis so a research subagent actively hunts the central DC rather than only the in-market ones.
 
 ## Stage 2: Batch and dispatch (Opus)
 
 Partition the scope into research batches and write one brief per batch.
 
 - **Batch by research load, not a flat count.** At most three countries per subagent is the ceiling, not the unit. A high-density country (the company's home market, or one with many sites) gets its own agent. Several low-presence countries share one. Aim to balance expected work across agents.
+- **Cover the whole region, including non-operating countries.** Batch every in-scope country, not just the company's markets. Give the gateway countries (Netherlands, Belgium, Germany, Poland) and any country named in the import/gateway hypothesis a batch even if the company has no presence there; the central EDC or import DC is exactly what a markets-only sweep misses.
 - **Write a self-contained brief per batch** using the dispatch template below, pre-filled with the identity set, the 3PL partner list, the per-country anchor (if any), and the per-country source playbook entries for the countries in that batch.
 - Spawn all research subagents in parallel.
 
@@ -169,6 +171,8 @@ Dispatch this to each Stage 3 Sonnet subagent, pre-filled with the batch's count
 >
 > **What counts.** A facility of at least **[SIZE FLOOR in the chosen unit]** of one of these types: **[FACILITY WHITELIST]**. Ignore retail stockrooms, offices and last-mile micro-sites unless told otherwise.
 >
+> **The company may not trade in your country, and that is fine.** It can still run a warehouse here, a central European DC, an import or bonded port-of-entry warehouse, or a 3PL-shared hub serving other markets. Do not skip your country or dismiss a site because the company has no stores or offices here; such a site is valid and is often the largest in the network. Record the markets it serves in comments if a source says.
+>
 > **Search in both languages.** Run every search in English and in **[local language(s)]**. Use the local warehouse vocabulary and the high-value source types in the playbook section you have been given. A term-only translation is not enough; search the local sources themselves.
 >
 > **Source-type floor, per country.** Cover **at least four of these six source types**, and the planning/permit portal is **mandatory wherever one exists**: (1) the company's own disclosures (annual/ESG report, "our network" page, careers site), (2) planning and permit portals, (3) the commercial register, (4) logistics and supply-chain trade press, (5) commercial property listings, (6) local news. Job postings are a useful *signal* that a site exists but are never the sole source for a size or a landlord. State in each country's coverage note which source types you actually reached.
@@ -203,6 +207,7 @@ Dispatch this to the Stage 6 verification subagent. Give it only the record set 
 
 - **The invented coordinate.** Any lat/long that did not come from the gazetteer or the browser geocoder. Disqualifying.
 - **The naked or re-unitised size.** A figure with no source, or a converted number with the raw `size_as_stated` thrown away. Keep the raw text; convert only in code.
+- **The operating-country trap.** Scoping the search to "countries the company operates in" and dispatching only to its markets. Central European DCs, bonded/port-of-entry import warehouses and 3PL-shared hubs routinely sit in countries where the company has no stores, and they are often the biggest sites. Scope is the region, never the retail footprint; the gateway countries are always in.
 - **The missing 3PL sites.** If the map has only occupier-named buildings and the company uses 3PLs, the network is half-mapped. Re-run the announcement search ("[provider] opens warehouse for [company]") and the provider case studies, not just "[company] + [provider]".
 - **The stale announcement taken as current.** A 2018 "[provider] to operate a DC for [company]" is evidence the site once existed, not that it runs today. Date every announcement, set `last_confirmed`, corroborate older ones against a recent source, and flag in comments where you cannot confirm it is still live.
 - **The premature stop.** A country "covered" in two minutes with three sites when the company is large there. The stop condition is two empty passes plus the four-source-type floor, not "enough".
