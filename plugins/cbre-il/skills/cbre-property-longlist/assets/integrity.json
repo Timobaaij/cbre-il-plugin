@@ -1,7 +1,7 @@
 {
   "helpers/_common.py": {
-    "size": 12951,
-    "sha256": "427bb702057c4529dc7336f8a366ba53abb3670c29e03205148aaf23cce11f07"
+    "size": 14041,
+    "sha256": "eedf9dcb7a9aba3c1b39d350b24e4496353077f9dc477b07d00f5fd05bde81a4"
   },
   "helpers/_vendor_wheels.py": {
     "size": 4162,
@@ -12,8 +12,8 @@
     "sha256": "1a7ab72df3a7f5a5d231e4c39cd52d6f31e22867c4226da8cf02cb55fa64642b"
   },
   "helpers/build_dashboard.py": {
-    "size": 10888,
-    "sha256": "0f5b759a9fe1cf356b259faa70f1825530c9bb230a2aece6e173e49f96c60270"
+    "size": 12093,
+    "sha256": "735ee0c8c6c7b604c515ebeb6e2036fe72cc60c0449c9aef9e337e3e8efb9783"
   },
   "helpers/build_poi_dataset.py": {
     "size": 8956,
@@ -72,8 +72,8 @@
     "sha256": "a228eb8484254757a5494c801d57f7d5cafef7f911a89ce03e9044aa6cb6ed8a"
   },
   "helpers/i18n.py": {
-    "size": 24359,
-    "sha256": "89132136756f96f289551e54d2ef31ee061b9b7c1aaa5b3035b94569169a7ebf"
+    "size": 24437,
+    "sha256": "6f2fcf3d58d84102ed22148a4c6afc3cf3637e079314ed1cb13c208a47e1ca91"
   },
   "helpers/images.py": {
     "size": 66349,
@@ -92,28 +92,28 @@
     "sha256": "9ee5b27a748195c2e6ffba4ea8139fb261e5444a185de921f60feff66e416979"
   },
   "helpers/make_integrity.py": {
-    "size": 2657,
-    "sha256": "7e13d9a99288919b6bcadee392fc14828e14d4b19dacc9fc0b6fe50938203db6"
+    "size": 2741,
+    "sha256": "28605cfa850fd3d6a0762d557b7d1c5fb0817ca6122acb941ad909a1e74bf13b"
   },
   "helpers/make_template.py": {
-    "size": 74450,
-    "sha256": "4355cd33c0b50438ea5e7a12a208fa59f532d4979af2e67229edd604693573c3"
+    "size": 74900,
+    "sha256": "f6adc5f3ffc94c4c6a17924426182ce0317c264333d5af4991285981c96b746e"
   },
   "helpers/match.py": {
     "size": 16863,
     "sha256": "7a2b21cc692f44894d2a30aa9bc09382ba3363dcbf50e7081a931cf209b0541a"
   },
   "helpers/merge.py": {
-    "size": 76287,
-    "sha256": "5e95000a4695f9514a8738daedaac2ad6bced03cb9e149237011debb988b5517"
+    "size": 76365,
+    "sha256": "c13345f3d0a0c91c340321800337990627e212d83238add87b9dc647669065ba"
   },
   "helpers/normalize.py": {
     "size": 15372,
     "sha256": "39ec977536e3ec104ce6832824016e23f32f144b90e00a66957de70f138335cd"
   },
   "helpers/preflight.py": {
-    "size": 4305,
-    "sha256": "2ea40bdf167a0f3b7f3631e20f22a003e944f9608ab40d07f18df24acbf66c78"
+    "size": 5777,
+    "sha256": "b1c3a9e9ed18353c92c3f46d16759421dd2436df4d0f316d13f2fbd5c0c62baa"
   },
   "helpers/rapidfuzz_shim.py": {
     "size": 2577,
@@ -124,8 +124,8 @@
     "sha256": "cca30c8a454057309606f71a8e55fb16e67e03511648d968a6effe64ffffb3f3"
   },
   "helpers/run.py": {
-    "size": 130645,
-    "sha256": "847f71ac8180058cb2f283274549b1f17e41ac60abf94180e93645dc2fc7770e"
+    "size": 130723,
+    "sha256": "ab26289d2c9476d0b1d20b452b8ea8ad571d4c929885c64739ac55b7724ab0e7"
   },
   "helpers/seed_geocode.py": {
     "size": 2442,
@@ -140,8 +140,8 @@
     "sha256": "f5ef374318c1092e6f974e6ea4368290f5b0220bd09f50599c54e6decfd70bbb"
   },
   "helpers/version_check.py": {
-    "size": 3836,
-    "sha256": "ef868cffca093710f9519e9a4a2b597c71bdaef6315e93aa734ae9d0cb7513d8"
+    "size": 3914,
+    "sha256": "93d3092b77339b539409417260ce7b814018f87a37a3e4b6c01ec5e5a53d6a7e"
   },
   "helpers/vision_prep.py": {
     "size": 11970,
@@ -199,9 +199,13 @@
     "size": 9516,
     "sha256": "0e0ad5f839c1ee3ab734c1ee6445ae429c3148e2ec8dd38774c5d1248d8cb3be"
   },
+  "NOTICE": {
+    "size": 892,
+    "sha256": "01ae142eb40ec8060aae8f1f1243576e4cc728daa25c47a66ee2a4093e6dae8c"
+  },
   "assets/dashboard_template.html": {
-    "size": 760179,
-    "sha256": "dff146a7dbbf8845bff7814cdaf5913b9963e8cea1f928c8e6a8386806f757c3"
+    "size": 760151,
+    "sha256": "3fa62b26aa1e90ffef0ed7a183ee4fbf154467e86b7528250873673fdd44a3b4"
   },
   "assets/dashboard_template.v18.html": {
     "size": 758003,
@@ -209,7 +213,7 @@
   },
   "assets/VERSION": {
     "size": 83,
-    "sha256": "ac72d3f691c8cbcdf88bcfaacce25880ef68e7ea2a209ed7d4f7a208b0002842"
+    "sha256": "d654e5e68371debebf98c5808c3be97586e9fe9777f7c49a43ea1c05cc419519"
   },
   "assets/poi_library.json": {
     "size": 18474,

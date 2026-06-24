@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# © 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved. (see NOTICE)
 """run.py - the deterministic pipeline spine (Stages 0-7) in one command.
 
 Drives the scriptable path end-to-end for the common brochure case:

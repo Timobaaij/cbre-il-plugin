@@ -24,6 +24,20 @@ TEMPLATE_HTML = ASSETS / "dashboard_template.html"
 VERSION_FILE = ASSETS / "VERSION"
 SCHEMA_FILE = TEMPLATES / "canonical.schema.json"
 
+# --- Ownership / provenance mark (see NOTICE) --------------------------------
+# Authored by Timo Baaij. OWNER_NOTICE is the human copyright line (carries the ©
+# glyph - keep it OUT of any console print on cp1252 hosts). OWNER_MARK is the ASCII,
+# machine-checkable mark that preflight.py verifies on every run; OWNER_FINGERPRINT is
+# a distinctive forensic token; OWNER_CANARY is a zero-width-encoded provenance canary
+# (escape sequences here, so the file has no invisible bytes; the runtime value is
+# invisible when rendered and survives copy-paste). Altering/removing any of these is
+# DETECTED: the marked files are hashed into assets/integrity.json and preflight flags
+# drift. (Honest limit: detectable, not unremovable - see NOTICE.)
+OWNER_NOTICE = "© 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved."
+OWNER_MARK = "cbre-property-longlist::owner=timo.baaij@cbre.com::2026"
+OWNER_FINGERPRINT = "tb-cpl-7f3a9e2c"
+OWNER_CANARY = "\u200b\u200c\u200b\u200c\u200c\u200b\u200c\u200b"  # ZW provenance canary (escape sequences -> no invisible bytes in source)
+
 DATA_MARKERS = {
     "PROPS": "/* @@INJECT:PROPS@@ */",
     "POIS": "/* @@INJECT:POIS@@ */",
@@ -35,7 +49,7 @@ DATA_MARKERS = {
 # BCP-47 {{locale}}; the template's app <script> reads `const UI = {{ui_json}}` and
 # `const LOCALE = "{{locale}}"`, then localises chrome at render via data-i18n*/T().
 CONFIG_TOKENS = [
-    "topbar_meta", "eyebrow", "title_html", "lede", "footer_copyright",
+    "topbar_meta", "eyebrow", "title_html", "lede", "footer_copyright", "doc_title",
     "kpi_properties", "kpi_countries", "kpi_regions", "kpi_developers",
     "kpi_wh_area", "kpi_rent", "kpi_countries_sub", "kpi_regions_sub",
     "kpi_wh_area_sub", "kpi_rent_sub", "dist_mode", "ui_json", "locale",

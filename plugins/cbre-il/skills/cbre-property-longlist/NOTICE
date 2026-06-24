@@ -1,0 +1,17 @@
+© 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved.
+
+cbre-property-longlist — authored by Timo Baaij.
+
+OWNERSHIP & PROVENANCE
+----------------------
+This skill carries an ownership mark in several places so a copy can be traced back
+to its author:
+
+  * Visible attribution: this NOTICE, plus a copyright header in the core helper files.
+  * Machine-checkable mark: helpers/_common.py OWNER_MARK / OWNER_FINGERPRINT (also a
+    zero-width provenance canary, OWNER_CANARY). helpers/preflight.py verifies the mark
+    is present and unaltered on every run.
+  * Tamper-evidence: assets/integrity.json records the SHA-256 of the marked files;
+    helpers/preflight.py flags any change. (Honest limit: this DETECTS tampering; a
+    determined editor can re-run helpers/make_integrity.py to re-bless an edited copy.
+    Nothing in a plain-text skill can be made literally unremovable.)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# © 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved. (see NOTICE)
 """build_dashboard.py - Stage 5. Inject the canonical dataset into the frozen template.
 
 Deterministic, no LLM, no new claims. It:
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -33,6 +35,23 @@ def _fmt_thousands_k(lo: float, hi: float) -> str:
         k = v / 1000.0
         return f"{k:.1f}".rstrip("0").rstrip(".")
     return f"{one(lo)} - {one(hi)}k"
+
+
+def _doc_title(hero: dict, meta: dict) -> str:
+    """The browser-tab <title> ({{doc_title}}). An explicit hero.doc_title wins (authored
+    per project, in the chosen language); else DERIVE from the eyebrow / headline / client
+    so the tab ALWAYS adapts to the project instead of the old hardcoded 'CEE ... Shortlist'
+    default. HTML tags are stripped (title_html carries <em>); the CBRE brand suffix is kept
+    on the derived path. Always returns a non-empty string (so the token never stays empty)."""
+    def strip(s):
+        return re.sub(r"<[^>]+>", "", str(s or "")).strip()
+    explicit = strip(hero.get("doc_title"))
+    if explicit:
+        return explicit
+    base = strip(hero.get("eyebrow")) or strip(hero.get("title_html")) or strip(meta.get("client"))
+    if not base:
+        return "CBRE Property Shortlist"
+    return base if "cbre" in base.lower() else base + " — CBRE"
 
 
 def compute_kpis(props: list[dict], regions: dict, units: dict | None = None,
@@ -124,6 +143,9 @@ def render(data: dict, strict: bool = True) -> tuple[str, dict]:
         "title_html": hero.get("title_html", ""),
         "lede": hero.get("lede", ""),
         "footer_copyright": hero.get("footer_copyright", ""),
+        # browser-tab <title> ({{doc_title}}): adapts per project + language (was a
+        # hardcoded "CEE Logistics Property Shortlist" default baked into the template).
+        "doc_title": _doc_title(hero, meta),
     }
     # dist_mode reflects the BUILD-time enrichment state so the dashboard can label
     # the distance/drive-time columns honestly (est. = straight-line, car / HGV =

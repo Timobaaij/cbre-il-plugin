@@ -7,6 +7,21 @@ decide whether an installed plugin is out of date, so it is bumped on every rele
 
 How to update to the latest version is in the [README](./README.md#updating).
 
+## [0.5.0] — 2026-06-24
+### Added
+- **Property longlist — ownership / provenance & tamper-evidence.** Adds a
+  `NOTICE` file and an authorship mark across the core helpers (visible copyright
+  header; `helpers/_common.py` carries `OWNER_MARK` / `OWNER_FINGERPRINT` and a
+  zero-width canary). `helpers/preflight.py` now verifies the mark on every run
+  (surfaced as a warning, never blocks), and `assets/integrity.json` records the
+  SHA-256 of the marked files so tampering is detectable.
+### Changed
+- Dashboard template bumped to **v20** (`assets/VERSION` + `dashboard_template.html`),
+  with supporting updates to `build_dashboard`, `make_template`, `i18n`, `merge`,
+  `run`, the smoke test, and `make_integrity`.
+- Regenerated `assets/integrity.json` against LF-normalised content (now also
+  covers the preserved `helpers/version_check.py` update notifier).
+
 ## [0.4.0] — 2026-06-23
 ### Added
 - **Built-in update notifier.** Each runnable skill now runs a tiny
@@ -56,6 +71,7 @@ How to update to the latest version is in the [README](./README.md#updating).
   `cbre` marketplace (corporate decks, account briefings, property longlist, CBRE
   tone of voice), plus client-compatibility fixes.
 
+[0.5.0]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.4.0
 [0.3.6]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.3.6
 [0.3.5]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.3.5

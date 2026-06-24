@@ -1019,8 +1019,17 @@ def patch_template(out_path: str, version_path: str, label: str) -> None:
         fail(f"modal-close aria-label: expected exactly twice, found {mc_n}x")
     text = text.replace(mc_old, mc_new)
 
+    # v20: the browser-tab <title> was a hardcoded project default ("CEE Logistics
+    # Property Shortlist") - point it at the {{doc_title}} config token so the tab label
+    # adapts per project + language (build_dashboard derives it from the hero).
+    text = _apply_once(
+        text,
+        "<title>CEE Logistics Property Shortlist — CBRE</title>",
+        "<title>{{doc_title}}</title>",
+        "doc_title <title> token")
+
     # invariants: the new tokens present, markers intact, UI/LOCALE consts present
-    for tok in ("{{ui_json}}", "{{locale}}"):
+    for tok in ("{{ui_json}}", "{{locale}}", "{{doc_title}}"):
         if tok not in text:
             fail(f"token {tok} missing after patch")
     for marker in DATA_MARKERS.values():
@@ -1039,7 +1048,7 @@ def patch_template(out_path: str, version_path: str, label: str) -> None:
     ver.write_text(f"{label}\nchrome_sha256={chrome_sha}\n", encoding="utf-8")
 
     kb = len(readback.encode("utf-8")) / 1024
-    print(f"OK template patched (v19 i18n): {out} ({kb:.0f} KB)")
+    print(f"OK template patched ({label}): {out} ({kb:.0f} KB)")
     print(f"OK version: {label}  chrome_sha256={chrome_sha}")
 
 

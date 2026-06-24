@@ -314,6 +314,25 @@ def main() -> int:
         except Exception:
             pass
 
+    # v20 guards: the browser-tab <title> is the adaptive {{doc_title}} token (was a
+    # hardcoded "CEE Logistics Property Shortlist" default); it derives per project +
+    # language from the hero, so the built tab title is a real project string.
+    if "{{doc_title}}" not in tpl:
+        fails.append("template <title> is not the adaptive {{doc_title}} token (v20)")
+    if "CEE Logistics Property Shortlist" in tpl:
+        fails.append("v20: template still carries the hardcoded 'CEE Logistics Property Shortlist' <title>")
+    m_title = re.search(r"<title>(.*?)</title>", html, re.DOTALL)
+    built_title = m_title.group(1) if m_title else ""
+    if (not built_title) or "{{" in built_title or "CEE Logistics Property Shortlist" in built_title:
+        fails.append(f"v20: built <title> is not an adapted project title (got {built_title!r})")
+    import copy as _copy20
+    es_variant = _copy20.deepcopy(CANON)
+    es_hero = es_variant["meta"].setdefault("hero", {})
+    es_hero["eyebrow"] = "Lista de naves logísticas · España"; es_hero.pop("doc_title", None)
+    m_es = re.search(r"<title>(.*?)</title>", build_dashboard.render(es_variant)[0], re.DOTALL)
+    if not (m_es and "España" in m_es.group(1)):
+        fails.append("v20: <title> does not adapt to the project (Spanish eyebrow did not reach the tab title)")
+
     if fails:
         print("\nSMOKE TEST: FAIL")
         for f in fails:

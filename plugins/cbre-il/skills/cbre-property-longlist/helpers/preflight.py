@@ -85,6 +85,27 @@ def problems(notes: list[str] | None = None) -> list[str]:
     return uniq
 
 
+def ownership_problems() -> list[str]:
+    """Tamper-EVIDENCE for the author's ownership/provenance mark (see NOTICE). A
+    TEXTUAL check (no import) so it stays dependency-free + robust even if _common is
+    broken. preflight only size-checks files, so a same-size edit that strips the mark
+    would otherwise slip past - this catches removal/alteration of the mark itself.
+    Non-fatal: a missing/edited mark is SURFACED (a visible warning), never enforced."""
+    out: list[str] = []
+    expect_mark = "cbre-property-longlist::owner=timo.baaij@cbre.com::2026"  # _common.OWNER_MARK
+    expect_fp = "tb-cpl-7f3a9e2c"                                            # _common.OWNER_FINGERPRINT
+    common = ROOT / "helpers" / "_common.py"
+    try:
+        txt = common.read_text(encoding="utf-8")
+        if expect_mark not in txt or expect_fp not in txt:
+            out.append("ownership mark in helpers/_common.py is missing or altered")
+    except Exception:
+        out.append("helpers/_common.py unreadable (ownership mark unverifiable)")
+    if not (ROOT / "NOTICE").exists():
+        out.append("NOTICE (copyright) file is missing")
+    return out
+
+
 def main() -> int:
     notes: list[str] = []
     probs = problems(notes)
@@ -94,6 +115,13 @@ def main() -> int:
         return 2
     n = len(list((ROOT / "helpers").glob("*.py")))
     print(f"OK skill integrity verified ({n} helpers)")
+    own = ownership_problems()
+    if own:
+        # tamper-evidence: surface (do not block) a missing/altered ownership mark
+        print("WARNING: ownership/provenance mark issue (see NOTICE): " + "; ".join(own),
+              file=sys.stderr)
+    else:
+        print("OK ownership mark verified (Timo Baaij)")
     for nmsg in notes[:12]:  # advisory only - a stale manifest must not block a run
         print(f"(note: {nmsg})", file=sys.stderr)
     return 0

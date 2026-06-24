@@ -20,7 +20,8 @@ TARGETS = (
     # bundled per-language chrome translations (Phase 1b); a truncated file would silently
     # degrade that language to the English fallback, so integrity-guard each one
     + sorted(str(p.relative_to(ROOT)).replace("\\", "/") for p in (ROOT / "assets" / "i18n").glob("*.json"))
-    + ["assets/dashboard_template.html",
+    + ["NOTICE",  # author's copyright/ownership mark (tamper-evidence; see NOTICE)
+       "assets/dashboard_template.html",
        # the PRIOR template, kept so old projects rebuild identically (contract rule);
        # v18 = the last pre-i18n template, preserved when v19 added localisation
        "assets/dashboard_template.v18.html", "assets/VERSION",

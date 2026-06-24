@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# © 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved. (see NOTICE)
 """version_check.py - best-effort "is a newer CBRE I&L Toolkit available?" nudge.
 
 Compares THIS installed plugin's version (the cbre-il `plugin.json`) against the

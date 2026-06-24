@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# © 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved. (see NOTICE)
 """merge.py - Stage 2. Combine candidate records into the canonical dataset.
 
 Reads one or more extractor record files, dedupes cross-source duplicates

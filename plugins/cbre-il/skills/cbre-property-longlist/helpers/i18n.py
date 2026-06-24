@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# © 2026 Timo Baaij (timo.baaij@cbre.com). All rights reserved. (see NOTICE)
 """i18n.py - dashboard CHROME localisation table (Phase 1 + Phase 2 fallback).
 
 The dashboard renders its fixed UI vocabulary ("chrome") in a chosen European
