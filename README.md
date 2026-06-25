@@ -31,31 +31,33 @@ repository**, enter `Timobaaij/cbre-il-plugin`, then install **CBRE I&L Toolkit*
 
 ## Updating
 
-Each release bumps the plugin `version`, and Claude Code only swaps in a new copy
-when that version changes — see the [CHANGELOG](./CHANGELOG.md) for what shipped.
+The toolkit tells you when you're behind: from v0.4.0 on, each skill prints a
+one-line "a newer version is available" note at startup, and the
+[CHANGELOG](./CHANGELOG.md) lists what changed in each release.
 
-**The reliable way to update (recommended):** remove the marketplace and add it
-again. This forces a fresh copy and always lands the latest version.
+**Step 1 — turn on auto-sync for the marketplace (one time).** This keeps the
+marketplace catalogue refreshed automatically, so new versions appear without you
+re-adding anything.
 
-- **Cowork:** Customize → Plugins → remove **CBRE I&L Toolkit** / its marketplace,
-  then re-add it with the steps above.
-- **CLI:**
-  ```
-  /plugin marketplace remove cbre
-  /plugin marketplace add Timobaaij/cbre-il-plugin
-  /plugin install cbre-il@cbre
-  ```
+- **Cowork:** open **Customize → Plugins → Marketplaces**, click the **CBRE**
+  marketplace (`cbre`), and switch **Sync automatically** to **on**.
+- **Claude Code (CLI):** run `/plugin` → **Marketplaces** → select **cbre** →
+  **Enable auto-update**. (Or set `"autoUpdate": true` on the marketplace in your
+  settings.)
+
+**Step 2 — apply an update when one is available.** Auto-sync refreshes the
+*catalogue*; it does not always re-install the plugin by itself. So when you see the
+update notice, apply it:
+
+- **Cowork:** **Customize → Plugins → CBRE I&L Toolkit → Update**.
+- **CLI:** `/plugin update cbre-il@cbre`.
 
 Then restart Claude so the refreshed skills load.
 
-> **Why remove-and-re-add rather than the in-place "update" button?** Claude Code's
-> in-place marketplace refresh and plugin auto-update are currently unreliable —
-> they can report success or "already up to date" while leaving you on the old
-> version ([claude-code#35752](https://github.com/anthropics/claude-code/issues/35752),
-> [#61854](https://github.com/anthropics/claude-code/issues/61854)). A fresh add is
-> a clean clone and sidesteps the issue. If you prefer the in-place CLI path you can
-> still try `/plugin marketplace update cbre` followed by `/plugin update cbre-il@cbre`,
-> but verify the version actually changed.
+> **If an update won't take (fallback).** Occasionally the in-place update reports
+> "up to date" while staying on the old version. If that happens, remove the
+> marketplace and add it again (the Install steps above) — a fresh add always lands
+> the latest version.
 
 ---
 
