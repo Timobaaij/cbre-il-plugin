@@ -26,7 +26,7 @@ repository**, enter `Timobaaij/cbre-il-plugin`, then install **CBRE I&L Toolkit*
 
 ```
 /plugin marketplace add Timobaaij/cbre-il-plugin
-/plugin install cbre-il@cbre
+/plugin install cbre-il-toolkit@cbre-il-toolkit
 ```
 
 ## Updating
@@ -39,9 +39,9 @@ one-line "a newer version is available" note at startup, and the
 marketplace catalogue refreshed automatically, so new versions appear without you
 re-adding anything.
 
-- **Cowork:** open **Customize → Plugins → Marketplaces**, click the **CBRE**
-  marketplace (`cbre`), and switch **Sync automatically** to **on**.
-- **Claude Code (CLI):** run `/plugin` → **Marketplaces** → select **cbre** →
+- **Cowork:** open **Customize → Plugins → Marketplaces**, click the **CBRE I&L
+  Toolkit** marketplace (`cbre-il-toolkit`), and switch **Sync automatically** to **on**.
+- **Claude Code (CLI):** run `/plugin` → **Marketplaces** → select **cbre-il-toolkit** →
   **Enable auto-update**. (Or set `"autoUpdate": true` on the marketplace in your
   settings.)
 
@@ -50,7 +50,7 @@ re-adding anything.
 update notice, apply it:
 
 - **Cowork:** **Customize → Plugins → CBRE I&L Toolkit → Update**.
-- **CLI:** `/plugin update cbre-il@cbre`.
+- **CLI:** `/plugin update cbre-il-toolkit@cbre-il-toolkit`.
 
 Then restart Claude so the refreshed skills load.
 

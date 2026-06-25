@@ -7,6 +7,19 @@ decide whether an installed plugin is out of date, so it is bumped on every rele
 
 How to update to the latest version is in the [README](./README.md#updating).
 
+## [Unreleased]
+### Changed
+- **Renamed the marketplace and plugin identifiers** — marketplace `cbre` →
+  `cbre-il-toolkit`, plugin `cbre-il` → `cbre-il-toolkit`. The install token is now
+  `cbre-il-toolkit@cbre-il-toolkit`. Re-added the plugin `displayName`
+  ("CBRE I&L Toolkit") on the marketplace entry.
+  **⚠️ Breaking:** existing installs are keyed to the old `cbre-il@cbre` identity and
+  do not migrate — each user must remove the old marketplace and add it again once.
+- **`warehouse-network-mapper`** — added Facility scope (warehousing only vs plus
+  manufacturing), Depth modes (normal / detail / extra-deep recon-then-deep funnel)
+  with the new `helpers/merge_leads.py` lead consolidator, and `tenure`/`status`
+  fields; updated `make_geocoder_html.py`. (Skill update that landed after 0.6.2.)
+
 ## [0.6.2] — 2026-06-24
 ### Changed
 - **`warehouse-network-mapper` — scope is the whole region, not the company's
