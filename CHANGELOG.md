@@ -7,6 +7,19 @@ decide whether an installed plugin is out of date, so it is bumped on every rele
 
 How to update to the latest version is in the [README](./README.md#updating).
 
+## [1.0.1] — 2026-06-25
+### Changed
+- **`cbre-il-account-briefing` — sharpened the supply-chain-signature read.**
+  Reframed the `supply-chain-signature` slide as supply-chain / network
+  intelligence — network shape, capacity (peak-vs-base), inventory positioning,
+  make-vs-buy, in-house vs 3PL — explicitly *not* the real-estate angle, which
+  stays on the later `challenge-to-real-estate` slide. Made it work for
+  manufacturers as well as retailers: added make-vs-buy / vertical-integration
+  and production-rhythm dimensions, two archetypes (vertically integrated maker;
+  make-to-stock/make-to-order manufacturer), and a worked
+  vertically-integrated-maker example. Updates `reference/supply-chain-signatures.md`,
+  `reference/synthesis-and-analysis.md`, and `reference/deck-structure.md`.
+
 ## [1.0.0] — 2026-06-24
 ### Changed
 - **Renamed the marketplace and plugin identifiers** — marketplace `cbre` →
@@ -115,6 +128,7 @@ How to update to the latest version is in the [README](./README.md#updating).
   `cbre` marketplace (corporate decks, account briefings, property longlist, CBRE
   tone of voice), plus client-compatibility fixes.
 
+[1.0.1]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.0
 [0.6.2]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.6.2
 [0.6.1]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.6.1
