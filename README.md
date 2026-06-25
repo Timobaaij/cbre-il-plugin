@@ -20,12 +20,12 @@ Once it's installed, just describe what you need and Claude runs the right skill
 ## Install
 
 **In Claude Cowork:** open **Customize → Plugins → ＋ → Add marketplace → Add from a
-repository**, enter `Timobaaij/cbre-il-plugin`, then install **CBRE I&L Toolkit**.
+repository**, enter `Timobaaij/cbre-il-toolkit`, then install **CBRE I&L Toolkit**.
 
 **In Claude Code (CLI):**
 
 ```
-/plugin marketplace add Timobaaij/cbre-il-plugin
+/plugin marketplace add Timobaaij/cbre-il-toolkit
 /plugin install cbre-il-toolkit@cbre-il-toolkit
 ```
 

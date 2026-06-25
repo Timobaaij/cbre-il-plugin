@@ -7,7 +7,7 @@ decide whether an installed plugin is out of date, so it is bumped on every rele
 
 How to update to the latest version is in the [README](./README.md#updating).
 
-## [Unreleased]
+## [1.0.0] — 2026-06-24
 ### Changed
 - **Renamed the marketplace and plugin identifiers** — marketplace `cbre` →
   `cbre-il-toolkit`, plugin `cbre-il` → `cbre-il-toolkit`. The install token is now
@@ -115,11 +115,12 @@ How to update to the latest version is in the [README](./README.md#updating).
   `cbre` marketplace (corporate decks, account briefings, property longlist, CBRE
   tone of voice), plus client-compatibility fixes.
 
-[0.6.2]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.6.2
-[0.6.1]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.6.1
-[0.6.0]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.6.0
-[0.5.0]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.5.0
-[0.4.0]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.4.0
-[0.3.6]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.3.6
-[0.3.5]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.3.5
-[0.3.4]: https://github.com/Timobaaij/cbre-il-plugin/releases/tag/v0.3.4
+[1.0.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.0
+[0.6.2]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.6.2
+[0.6.1]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.6.1
+[0.6.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.6.0
+[0.5.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.5.0
+[0.4.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.4.0
+[0.3.6]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.3.6
+[0.3.5]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.3.5
+[0.3.4]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v0.3.4

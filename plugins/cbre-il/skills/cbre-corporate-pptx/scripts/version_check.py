@@ -27,10 +27,10 @@ from pathlib import Path
 
 # The authoritative published version lives in plugin.json on the default branch.
 RAW_PLUGIN_JSON = (
-    "https://raw.githubusercontent.com/Timobaaij/cbre-il-plugin/main/"
+    "https://raw.githubusercontent.com/Timobaaij/cbre-il-toolkit/main/"
     "plugins/cbre-il/.claude-plugin/plugin.json"
 )
-UPDATE_DOC = "https://github.com/Timobaaij/cbre-il-plugin#updating"
+UPDATE_DOC = "https://github.com/Timobaaij/cbre-il-toolkit#updating"
 TIMEOUT_S = 2.5
 
 
