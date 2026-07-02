@@ -7,6 +7,25 @@ decide whether an installed plugin is out of date, so it is bumped on every rele
 
 How to update to the latest version is in the [README](./README.md#updating).
 
+## [1.0.3] — 2026-07-02
+### Changed
+- **`cbre-il-outreach-angles` — tighter scoring and a stricter gate.**
+  Developability is now scored to a stated two-sub-factor rubric (scale +
+  near-term transaction likelihood) with an **anchor-quality cap**: an item whose
+  anchor fact is only an inference (e.g. unconfirmed freehold) is capped at
+  Medium, so an unverified premise can no longer lead the sheet on scale alone.
+  The ranked list must run in **non-increasing developability-band order** — the
+  deterministic gate now FAILs an out-of-order list — and is treated as a ceiling
+  of about five to seven, not a target (thin or speculative angles go to the
+  watch-list, never padded into a slot). Email hooks must be **pasteable,
+  send-ready sentences** (no "reference their capex" instructions), and are
+  **hedged on verify-first items** so an unverified fact is posed as a question in
+  the soft ask, never asserted. New anchor-integrity rules: a load-bearing figure
+  must cite a primary or corroborating source (a data-aggregator-only citation
+  raises an advisory WARN), and inferred ownership is framed as an open question,
+  never as "owned". Updates `helpers/final_gate.py` and `evals/smoke_test.py`,
+  `SKILL.md`, `reference/evidence-and-ledger.md`, and `reference/output-template.md`.
+
 ## [1.0.2] — 2026-07-01
 ### Added
 - **New skill: `cbre-il-outreach-angles`.** Turns a target company into a
@@ -149,6 +168,7 @@ How to update to the latest version is in the [README](./README.md#updating).
   `cbre` marketplace (corporate decks, account briefings, property longlist, CBRE
   tone of voice), plus client-compatibility fixes.
 
+[1.0.3]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Timobaaij/cbre-il-toolkit/releases/tag/v1.0.0

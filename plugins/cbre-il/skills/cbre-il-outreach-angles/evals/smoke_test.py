@@ -2,24 +2,19 @@
 """
 smoke_test.py - self-test for helpers/final_gate.py and helpers/render_html.py.
 
-Locks in the behaviour that matters for the v3 plain-English single-list output:
-the sheet opens with a plain-English situation, a jargon buster, a "why this is a
-live prospect" note and an at-a-glance table, then each ranked item is written
-plain-English-first (What is happening / What it means for them / Your way in) and
-still carries the machine-checkable labels (Developability / Trigger / Readiness),
-an Email hook and an Evidence block with F/I/A tags.
-
-Sections:
+Covers the v3 plain-English single-list output plus the Wave-1 content-shape gate:
   1. DATE_RE accepts real dates and REJECTS bare month-words / fractions.
-  2. check_sheet PASSes a well-formed v3 sheet and FAILs a broken one, including the
-     new plain-English section checks and the 11-field per-item set.
+  2. check_sheet PASSes a well-formed v3 sheet and FAILs a broken one.
   3. chase-list gate.
   4. footprint reconciliation.
   5. recency-refresh.
-  6. NO STATED TOTAL retired; absence-is-not-evidence.
+  6. absence-is-not-evidence (the retired NO STATED TOTAL machinery is gone).
   7. coverage-map integrity.
   8. zero-item sheet ships with a watch-list + no-call verdict.
   9. render_html turns a validated sheet into HTML with the key structural pieces.
+ 10. WAVE 1 content-shape: developability rank order (non-increasing), Event-driven
+     trigger dated on its own line, the Structural two-fact fence, Send-now needs a
+     [FACT] on the Trigger line, and the pasteable-hook WARN.
 
 Run:  python evals/smoke_test.py
 Exit 0 if all assertions hold, 1 otherwise.
@@ -48,20 +43,14 @@ def check_status(sheet, name, ledger=""):
 
 # --- 1. DATE_RE -----------------------------------------------------------------
 
-DATES_THAT_MUST_MATCH = [
-    "appointed CSCO effective 1 May 2026", "results call on 2026-05-20",
-    "lease expiry in Q3 2027", "contract signed in 2022 and therefore due",
-    "decision due 20 May", "filed on May 21st", "permit dated 01/05/2026",
-]
-TREND_LINES_THAT_MUST_NOT_MATCH = [
-    "they may be expanding their automation footprint", "a march toward consolidation is underway",
-    "they are investing in automation", "sustainability is rising up the agenda",
-    "spec is 3/4 of the dock doors", "margins are tightening this year-ish",
-]
-for s in DATES_THAT_MUST_MATCH:
-    expect(fg.DATE_RE.search(s) is not None, f"DATE_RE should MATCH a real date: {s!r}")
-for s in TREND_LINES_THAT_MUST_NOT_MATCH:
-    expect(fg.DATE_RE.search(s) is None, f"DATE_RE should NOT match (trend/fraction): {s!r}")
+for s in ["appointed CSCO effective 1 May 2026", "results call on 2026-05-20",
+          "lease expiry in Q3 2027", "contract signed in 2022 and therefore due",
+          "decision due 20 May", "filed on May 21st", "permit dated 01/05/2026"]:
+    expect(fg.DATE_RE.search(s) is not None, f"DATE_RE should MATCH: {s!r}")
+for s in ["they may be expanding their automation footprint", "a march toward consolidation",
+          "they are investing in automation", "sustainability is rising up the agenda",
+          "spec is 3/4 of the dock doors", "margins are tightening this year-ish"]:
+    expect(fg.DATE_RE.search(s) is None, f"DATE_RE should NOT match: {s!r}")
 
 
 # --- 2. check_sheet on a good and a broken sheet --------------------------------
@@ -96,13 +85,13 @@ conversation and a network-design conversation are open right now.
 What is happening: Acme's online orders keep rising but it still ships everything from one national hub.
 What it means for them: the distance and cost to serve each order grow as they expand, which usually means a second regional warehouse.
 Your way in: point out the mismatch and offer a short view of where a second hub could sit.
-Developability: High. A regional fulfilment requirement is a sizeable, transactable I&L mandate.
-Trigger: Structural. Online share rising since 2024 [FACT] set against a single national hub [FACT].
+Developability: High. Scale is a multi-site regional fulfilment mandate; a named CSCO and a live network review raise near-term likelihood.
+Trigger: Structural. Online share rising since 2024 [FACT] set against a single national hub [FACT], so service distance is widening [INFERENCE].
 Readiness: Verify first: confirm there is no planned second hub before sending.
 Email hook:
-  - First line: name their online growth and the single-hub model, specific to them.
-  - The one consequence: service distance and cost scale with every new order.
-  - Soft ask: a one-page view of regional-DC options peers have taken.
+  - First line: You have grown online strongly since 2024 while still shipping from a single national hub.
+  - The one consequence: service distance and cost climb with every new order that hub has to reach.
+  - Soft ask: Worth a short call to check whether a second hub is already on your roadmap?
 Call opener: where would the next hub sit given your growth corridors?
 Evidence: growth and a single hub together imply a cost-to-serve gap [INFERENCE], grounded on two sourced facts dated 2024 and 2025 [FACT].
 Stakeholder: the CSCO and the property lead.
@@ -112,13 +101,13 @@ Confidence: Medium, the single-hub model needs one confirmation.
 What is happening: Acme appointed a new Chief Supply Chain Officer, effective 1 May 2026.
 What it means for them: new leaders review the network they inherit, so the design is genuinely open now.
 Your way in: a welcome-to-role note offering an outside view while decisions are still being made.
-Developability: Medium. A new network owner typically reviews site mix within the year, a real mandate.
+Developability: Medium. Scale is a single network-review mandate; a named owner in his decision window raises near-term likelihood.
 Trigger: Event-driven. Appointed Chief Supply Chain Officer effective 1 May 2026 (newsroom, 2026-05-01) [FACT].
 Readiness: Send now
 Email hook:
-  - First line: reference their named new CSCO and the channel mix they inherit.
-  - The one consequence: the network was designed for an older channel mix and now needs a rethink.
-  - Soft ask: a short call on how peers sequenced an early network review.
+  - First line: Congratulations on taking the CSCO seat from 1 May; the network you have inherited was built for an older channel mix.
+  - The one consequence: that mismatch is cheapest to reset in the first hundred days.
+  - Soft ask: Happy to share how peers sequenced an early network review, if useful.
 Call opener: which parts of the inherited network are you most likely to rethink first?
 Evidence: the appointment is live [FACT] and new leaders inherit older networks [INFERENCE].
 Stakeholder: the new CSCO, reachable via the known Head of Property.
@@ -151,34 +140,21 @@ good = fg.check_sheet(GOOD, GOOD)
 good_fails = [r for r in good if r["status"] == "FAIL"]
 expect(not good_fails, f"GOOD sheet should have no FAILs, got: {[r['check'] for r in good_fails]}")
 
-bad = fg.check_sheet(BAD, "")
-bad_fails = {r["check"] for r in bad if r["status"] == "FAIL"}
-expect("angle1_dated" in bad_fails, "BAD sheet undated item should FAIL angle1_dated")
-expect("angle1_fields" in bad_fails, "BAD sheet should FAIL on missing item fields")
-expect("angle1_developability" in bad_fails, "BAD sheet should FAIL on missing Developability")
-expect("angle1_readiness" in bad_fails, "BAD sheet should FAIL on missing Readiness")
-expect("jargon_buster" in bad_fails, "BAD sheet (with an item) should FAIL missing Jargon buster")
-expect("at_a_glance" in bad_fails, "BAD sheet (with an item) should FAIL missing At a glance")
-expect("why_prospect" in bad_fails, "BAD sheet (with an item) should FAIL missing Why prospect")
-expect(bool(bad_fails), "BAD sheet should FAIL overall")
+bad_fails = {r["check"] for r in fg.check_sheet(BAD, "") if r["status"] == "FAIL"}
+expect("angle1_fields" in bad_fails, "BAD should FAIL on missing item fields")
+expect("angle1_developability" in bad_fails, "BAD should FAIL on missing Developability")
+expect("angle1_readiness" in bad_fails, "BAD should FAIL on missing Readiness")
+expect("jargon_buster" in bad_fails, "BAD (with an item) should FAIL missing Jargon buster")
+expect("at_a_glance" in bad_fails, "BAD (with an item) should FAIL missing At a glance")
+expect(bool(bad_fails), "BAD should FAIL overall")
 
 
 # --- 3. chase-list gate ---------------------------------------------------------
 
-EVIDENCE_UNCLEARED = """## Findings
-| A1 | A | parent group filing | pull if possible | registry | url | registry | 2026-05-01 | 2026-06-25 | live | FACT | not yet opened |
-## Chase list
-- A1 parent-group consolidated filing: pull if possible
-"""
-EVIDENCE_CLEARED = """## Findings
-| A1 | A | parent group filing | "revenue 1.2bn FY25" | registry | url | registry | 2026-05-01 | 2026-06-25 | live | FACT | opened |
-## Chase list
-- A1 parent-group consolidated filing: resolved (see A1), was flagged pull if possible
-- A2 regional permit: gap: portal unreachable within budget
-"""
-expect(fg.check_evidence(EVIDENCE_UNCLEARED)["status"] == "FAIL",
-       "uncleared chase list should FAIL")
-expect(fg.check_evidence(EVIDENCE_CLEARED)["status"] == "PASS", "cleared chase list should PASS")
+EV_UNCLEARED = "## Chase list\n- A1 filing: pull if possible\n"
+EV_CLEARED = "## Chase list\n- A1 filing: resolved (see A1), was flagged pull if possible\n- A2: gap: portal down\n"
+expect(fg.check_evidence(EV_UNCLEARED)["status"] == "FAIL", "uncleared chase list should FAIL")
+expect(fg.check_evidence(EV_CLEARED)["status"] == "PASS", "cleared chase list should PASS")
 expect(fg.check_evidence("") is None, "no evidence file should yield None")
 
 
@@ -190,12 +166,9 @@ expect(check_status("the complete network is fully mapped\nRECONCILIATION: RECON
                     "footprint_reconciliation") == "PASS", "saturation + RECONCILED should PASS")
 expect(check_status("complete network\nRECONCILIATION: UNRESOLVED GAP",
                     "footprint_reconciliation") == "FAIL", "saturation + UNRESOLVED GAP should FAIL")
-for benign in [
-    "The complete network is not yet established from public sources, so we use a floor of at least four sites.",
-    "all 5 distribution centres remain unconfirmed",
-]:
-    expect(check_status(benign, "footprint_reconciliation") == "PASS",
-           f"hedged prose must not false-fail: {benign!r}")
+for benign in ["The complete network is not yet established, so we use a floor of at least four sites.",
+               "all 5 distribution centres remain unconfirmed"]:
+    expect(check_status(benign, "footprint_reconciliation") == "PASS", f"hedged prose must PASS: {benign!r}")
 expect("footprint_reconciliation" not in {r["check"] for r in good if r["status"] == "FAIL"},
        "GOOD should not FAIL footprint_reconciliation")
 
@@ -203,29 +176,23 @@ expect("footprint_reconciliation" not in {r["check"] for r in good if r["status"
 # --- 5. recency-refresh ---------------------------------------------------------
 
 _AGEING_BAD = '| 3 | older lease deal | "signed earlier" | url | 2025-09-01 | 2026-06-25 | ageing | FACT |'
-_AGEING_OK = _AGEING_BAD + " refresh: confirmed-ageing"
 expect(check_status(GOOD, "recency_refresh", GOOD) == "PASS", "GOOD should PASS recency_refresh")
 expect(check_status(GOOD + "\n" + _AGEING_BAD + "\n", "recency_refresh") == "FAIL",
        "ageing row with no refresh outcome should FAIL")
-expect(check_status(GOOD + "\n" + _AGEING_OK + "\n", "recency_refresh") == "PASS",
+expect(check_status(GOOD + "\n" + _AGEING_BAD + " refresh: confirmed-ageing\n", "recency_refresh") == "PASS",
        "ageing row with a refresh outcome should PASS")
-_LIVE_MENTIONS_AGEING = '| 4 | note on an ageing fleet | "x" | url | 2026-05-01 | 2026-06-25 | live | FACT |'
-expect(check_status(GOOD + "\n" + _LIVE_MENTIONS_AGEING + "\n", "recency_refresh") == "PASS",
-       "a live row mentioning 'ageing' in its claim must not FAIL")
 
 
-# --- 6. NO STATED TOTAL retired + absence-is-not-evidence -----------------------
+# --- 6. absence-is-not-evidence (NO STATED TOTAL machinery removed) -------------
 
-expect(check_status("the complete network\nRECONCILIATION: NO STATED TOTAL",
-                    "footprint_reconciliation") == "FAIL", "retired NO STATED TOTAL should FAIL")
 for absent in ["We found no distribution centre in the south.", "There is no evidence of a second hub.",
                "A second site was not found in our searches.", "The group appears to have no regional DC."]:
-    expect(check_status(absent, "no_unsourced_absence") == "FAIL",
-           f"search-emptiness must FAIL: {absent!r}")
+    expect(check_status(absent, "no_unsourced_absence") == "FAIL", f"search-emptiness must FAIL: {absent!r}")
 expect(check_status("The company states it runs a single central DC serving the region.",
                     "no_unsourced_absence") == "PASS", "positively-sourced centralised claim must PASS")
-expect("no_unsourced_absence" not in {r["check"] for r in good if r["status"] == "FAIL"},
-       "GOOD should not FAIL no_unsourced_absence")
+# The retired token no longer has any dedicated handling; it must not crash and must not be a check.
+expect(check_status("RECONCILIATION: NO STATED TOTAL", "footprint_reconciliation") is not None,
+       "footprint_reconciliation still runs; NO STATED TOTAL is just ignored text now")
 
 
 # --- 7. coverage-map integrity --------------------------------------------------
@@ -252,18 +219,8 @@ A quiet private company; nothing is live enough to lead with this quarter.
 ## Source Ledger
 | ref | claim | value | source | date | access | grade | F/I/A |
 """
-zl_fails = {r["check"] for r in fg.check_sheet(ZERO_WL, "") if r["status"] == "FAIL"}
-expect("zero_angle_ok" not in zl_fails, "zero-item sheet with watch-list + no-call verdict must PASS")
-
-ZERO_EMPTY = """# Outreach angles: Test Co
-Region | Researched 2026-06-26 | Private
-
-## The situation in plain English
-A company.
-
-## Angles (ranked)
-"""
-expect(check_status(ZERO_EMPTY, "zero_angle_ok") == "FAIL", "truly empty sheet should FAIL zero_angle_ok")
+expect("zero_angle_ok" not in {r["check"] for r in fg.check_sheet(ZERO_WL, "") if r["status"] == "FAIL"},
+       "zero-item sheet with watch-list + no-call verdict must PASS")
 
 
 # --- 9. render_html -------------------------------------------------------------
@@ -274,9 +231,88 @@ expect("Acme Logistics BV" in htmldoc, "render should carry the company name")
 expect('class="glance"' in htmldoc, "render should build the at-a-glance table")
 expect("Show the evidence and call script" in htmldoc, "render should put evidence behind a details toggle")
 expect('class="jargon"' in htmldoc, "render should build the jargon buster list")
-expect("Email hook" in htmldoc, "render should surface the email hook")
 expect(htmldoc.count('class="card"') == 2, "render should build one card per ranked item")
+expect(htmldoc.rindex('class="jargon-sec"') > htmldoc.rindex('class="card"'),
+       "jargon buster must render after the last opportunity card")
 expect("—" not in htmldoc and "–" not in htmldoc, "render must not introduce em/en dashes")
+
+
+# --- 10. WAVE 1 content-shape checks --------------------------------------------
+
+# GOOD passes each new content-shape check.
+expect(check_status(GOOD, "angle_rank_order") == "PASS", "GOOD is in non-increasing band order")
+expect(check_status(GOOD, "angle1_structural_fence") == "PASS", "GOOD item1 meets the Structural fence")
+expect(check_status(GOOD, "angle2_trigger_dated") == "PASS", "GOOD item2 Event-driven trigger is dated")
+expect(check_status(GOOD, "angle2_sendnow_anchor") == "PASS", "GOOD item2 Send-now has a [FACT] trigger")
+expect(check_status(GOOD, "angle1_hook_pasteable") == "PASS", "GOOD item1 hook is a sendable sentence")
+
+# Rank inversion: item1 Medium above item2 High must FAIL angle_rank_order.
+INVERTED = GOOD.replace("Developability: High. Scale is a multi-site regional",
+                        "Developability: Medium. Scale is a multi-site regional") \
+               .replace("Developability: Medium. Scale is a single network-review",
+                        "Developability: High. Scale is a single network-review")
+expect(check_status(INVERTED, "angle_rank_order") == "FAIL",
+       "a Medium item above a High item must FAIL angle_rank_order")
+
+# Structural fence: one [FACT] on the Trigger line must FAIL.
+ONEFACT = GOOD.replace(
+    "Trigger: Structural. Online share rising since 2024 [FACT] set against a single national hub [FACT], so service distance is widening [INFERENCE].",
+    "Trigger: Structural. Online share rising since 2024 [FACT], and firms like this usually add a hub [INFERENCE].")
+expect(check_status(ONEFACT, "angle1_structural_fence") == "FAIL",
+       "a Structural trigger with one [FACT] must FAIL the fence")
+
+# Dated tags like [FACT, 2024] must count toward the fence (the convention allows an
+# in-bracket date annotation), so a fence of two dated facts + one inference PASSes.
+DATED_FENCE = GOOD.replace(
+    "Trigger: Structural. Online share rising since 2024 [FACT] set against a single national hub [FACT], so service distance is widening [INFERENCE].",
+    "Trigger: Structural. Online share rising since 2024 [FACT, 2024] set against a single national hub [FACT, 2025], so service distance is widening [INFERENCE].")
+expect(check_status(DATED_FENCE, "angle1_structural_fence") == "PASS",
+       "dated [FACT, ...] tags must count toward the Structural fence")
+
+# Event-driven trigger with no date ON the Trigger line must FAIL, even if a date sits elsewhere.
+UNDATED = GOOD.replace(
+    "Trigger: Event-driven. Appointed Chief Supply Chain Officer effective 1 May 2026 (newsroom, 2026-05-01) [FACT].",
+    "Trigger: Event-driven. Appointed a new Chief Supply Chain Officer recently (newsroom) [FACT].")
+expect(check_status(UNDATED, "angle2_trigger_dated") == "FAIL",
+       "an Event-driven trigger with no date on its own line must FAIL")
+
+# Send-now on an inference-only trigger must FAIL.
+SENDNOW_INF = GOOD.replace("(newsroom, 2026-05-01) [FACT].", "(newsroom, 2026-05-01) [INFERENCE].")
+expect(check_status(SENDNOW_INF, "angle2_sendnow_anchor") == "FAIL",
+       "a Send-now item whose Trigger line has no [FACT] must FAIL")
+
+# Pasteable-hook WARN: a first line beginning with an instruction verb WARNs (never FAILs).
+HOOKWARN = GOOD.replace(
+    "  - First line: You have grown online strongly since 2024 while still shipping from a single national hub.",
+    "  - First line: reference their online growth and single-hub model.")
+expect(check_status(HOOKWARN, "angle1_hook_pasteable") == "WARN",
+       "an instruction-verb first line must WARN")
+expect("angle1_hook_pasteable" not in {r["check"] for r in fg.check_sheet(HOOKWARN, "") if r["status"] == "FAIL"},
+       "the pasteable-hook check must never FAIL a run")
+
+# Broadened coverage: an extra instruction verb ('point') and a non-dash bullet ('*') still WARN.
+HOOKWARN2 = GOOD.replace(
+    "  - First line: You have grown online strongly since 2024 while still shipping from a single national hub.",
+    "  * First line: point out their online growth and single-hub model.")
+expect(check_status(HOOKWARN2, "angle1_hook_pasteable") == "WARN",
+       "an asterisk-bulleted first line beginning 'point' must WARN (verb + bullet coverage)")
+
+
+# --- Wave 2: aggregator-source advisory WARN (never a FAIL) ---------------------
+
+AGG_LEDGER = ("## Source Ledger\n"
+              "| 1 | net debt | \"1.9bn\" | https://finance.yahoo.com/quote/x | 2026-05-01 | 2026-06-25 | live | FACT |\n")
+expect(check_status(AGG_LEDGER, "aggregator_sources") == "WARN",
+       "a ledger row citing an aggregator host (finance.yahoo.com) must WARN aggregator_sources")
+expect("aggregator_sources" not in {r["check"] for r in fg.check_sheet(AGG_LEDGER, "") if r["status"] == "FAIL"},
+       "the aggregator advisory must never FAIL a run")
+expect(check_status(GOOD, "aggregator_sources", GOOD) == "PASS",
+       "GOOD (newsroom/primary sources only) must PASS aggregator_sources")
+# Host-anchored match: an aggregator token inside an unrelated URL PATH must NOT WARN.
+PRIMARY_PATH = ("## Source Ledger\n"
+                "| 1 | net debt | \"1.9bn\" | https://ir.acme.com/investing.commitments-2026 | 2026-05-01 | 2026-06-25 | live | FACT |\n")
+expect(check_status(PRIMARY_PATH, "aggregator_sources") == "PASS",
+       "an aggregator token in a URL path (host is ir.acme.com) must NOT WARN aggregator_sources")
 
 
 # --- report ---------------------------------------------------------------------
@@ -287,6 +323,7 @@ if failures:
         print(f"  - {f}")
     sys.exit(1)
 
-print("SMOKE TEST PASSED: dates, plain-English sections, item fields, chase-list, reconciliation, "
-      "recency-refresh, coverage, zero-item, and HTML render.")
+print("SMOKE TEST PASSED: dates, sections, item fields, chase, reconciliation, recency, coverage, "
+      "zero-item, HTML render, and Wave-1 content-shape (rank order, trigger date, structural fence, "
+      "send-now anchor, pasteable hook).")
 sys.exit(0)

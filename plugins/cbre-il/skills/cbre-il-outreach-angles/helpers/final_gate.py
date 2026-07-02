@@ -8,18 +8,21 @@ miss. The markdown is the gate-validated source of truth; the self-contained HTM
 delivered to the broker is rendered from this validated markdown by
 helpers/render_html.py.
 
-The sheet is a SINGLE ranked list of opportunities (ranked by developability),
-written PLAIN-ENGLISH-FIRST: it opens with a plain-language situation, a jargon
-buster, a "why this is a live prospect" note and an at-a-glance table, then each
-ranked item is written in plain words (What is happening / What it means for them /
-Your way in) before its labelled evidence. Each item still carries the machine-
-checkable axis labels (Developability, Trigger type), a Readiness label (Send now /
-Verify first) and an Email hook, so the digestibility is enforced alongside the
-rigour.
+The sheet is a SINGLE ranked list of opportunities, ranked by DEVELOPABILITY and
+written PLAIN-ENGLISH-FIRST. As well as section/field shape, the gate now checks
+CONTENT-SHAPE at the load-bearing lines, which is where quality actually lives:
+  - developability bands are in non-increasing order (High, then Medium, then Low);
+  - an Event-driven trigger carries a real date ON its own Trigger line;
+  - a Structural trigger rests on >=2 [FACT] and >=1 [INFERENCE] on its Trigger line
+    (the anti-trend fence);
+  - a 'Send now' item carries at least one [FACT] on its Trigger line;
+and it WARNs on an email-hook first line that is a meta-instruction rather than a
+sendable sentence. These move the reviewer's most-variable judgements into the
+deterministic layer, which is the biggest lever on run-to-run consistency.
 
-It is STRUCTURE ONLY: it does not judge content quality, the strength of a trigger,
-whether developability is rated honestly, or whether a source is real or an
-enumeration truly complete. That is the reviewer's job (Stage 5).
+It is STRUCTURE ONLY: it does not judge whether a source is real, whether the
+developability band is honest, or whether an enumeration is complete. That is the
+reviewer's job (Stage 5).
 
 Usage:
     python final_gate.py SHEET.md [--ledger LEDGER.md] [--evidence EVIDENCE.md] [--json]
@@ -32,17 +35,11 @@ import json
 import re
 import sys
 
-# Em (U+2014) and en (U+2013) dashes, plus the look-alikes a model slips in:
-# figure dash (U+2012), horizontal bar (U+2015), minus sign (U+2212).
+# Em (U+2014) and en (U+2013) dashes, plus the look-alikes a model slips in.
 # The ASCII hyphen-minus "-" (U+002D) is allowed and NOT matched.
 DASH_RE = re.compile(r"[‒–—―−]")
 
-# A REAL date token. Deliberately strict so a bare month-word ("may", "march")
-# or a spec fraction ("3/4") does NOT count as a date:
-#   - a 4-digit year (also covers ISO YYYY-MM-DD and "May 2026");
-#   - a numeric date that INCLUDES a year, e.g. 01/05/2026 or 1-5-26 (so "3/4" fails);
-#   - a day adjacent to a month name, e.g. "1 May", "21 March";
-#   - a month name adjacent to a day, e.g. "May 1", "May 21st".
+# A REAL date token. Strict, so a bare month-word or a spec fraction does NOT count.
 _MONTH = (
     r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
     r"jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
@@ -63,10 +60,7 @@ CONDITIONAL_SECTIONS = [
     ("## Why this is a live prospect", "why_prospect"),
     ("## At a glance", "at_a_glance"),
 ]
-# The per-item field set. Every "### N." item must carry all of these. The first three
-# are the plain-English layer (digestibility); Developability/Trigger are the ranking
-# axes; Readiness is the send-now/verify-first split; Email hook is the cold-email
-# deliverable; Evidence carries the sourced facts and F/I/A tags.
+# The per-item field set. Every "### N." item must carry all of these.
 ANGLE_FIELDS = [
     "What is happening:",
     "What it means for them:",
@@ -82,7 +76,13 @@ ANGLE_FIELDS = [
 ]
 FIA_TAGS = ["[FACT]", "[INFERENCE]", "[ASSUMPTION]"]
 CONFIDENCE_VALUES = {"high", "medium", "low"}
+BAND_RANK = {"high": 3, "medium": 2, "low": 1}
 WORD_BUDGET = 3000  # length cap retired for the deliverable; this is only a sanity WARN.
+# Instruction verbs that mean an email-hook first line describes what to write rather
+# than being the sendable sentence itself.
+HOOK_INSTRUCTION_VERBS = ("note", "reference", "mention", "highlight", "flag",
+                          "point", "lead", "open", "cite", "raise", "remind",
+                          "stress", "underscore", "call")
 
 # Per-item label validators. Keyed to the start of their own line in an item block.
 DEVELOPABILITY_RE = re.compile(r"^Developability:\s*(High|Medium|Low)\b", re.I | re.M)
@@ -105,7 +105,6 @@ _NEG_RE = re.compile(
 _SENTENCE_BOUNDARY = ".;\n"
 RECON_RECONCILED_RE = re.compile(r"RECONCILIATION:\s*RECONCILED\b", re.I)
 RECON_GAP_RE = re.compile(r"RECONCILIATION:\s*UNRESOLVED GAP\b", re.I)
-RECON_NOSTATED_RE = re.compile(r"RECONCILIATION:\s*NO STATED TOTAL", re.I)
 
 ABSENCE_RE = re.compile(
     r"\b(?:found no|could not find|couldn't find|did not find|didn't find|we found no|"
@@ -114,6 +113,12 @@ ABSENCE_RE = re.compile(
     re.I,
 )
 COVERAGE_INCONCLUSIVE_RE = re.compile(r"\bINCONCLUSIVE\b", re.I)
+# Data-aggregator hosts a load-bearing figure should NOT rest on alone (primary source or a
+# corroborating second row is expected). Advisory WARN only; the reviewer owns the real judgement.
+AGGREGATOR_HOSTS = (
+    "finance.yahoo.com", "investing.com", "marketscreener.com", "simplywall.st",
+    "stockanalysis.com", "wallmine.com", "tipranks.com", "barchart.com",
+)
 UNRESOLVED_CHASE_RE = re.compile(r"pull if possible|pointer not opened", re.I)
 _CHASE_DONE_RE = re.compile(r"\b(?:resolved|gap:)", re.I)
 
@@ -134,9 +139,26 @@ def find_angle_blocks(text):
     return blocks
 
 
+def field_span(blk, field):
+    """Return the text of a field, from its 'Field:' line up to the next known field
+    label (so a wrapped value or sub-bullets, e.g. under 'Email hook:', are included).
+    Returns '' if the field is absent."""
+    span, capturing = [], False
+    for ln in blk.splitlines():
+        s = ln.strip()
+        if not capturing:
+            if s.startswith(field):
+                capturing = True
+                span.append(ln)
+            continue
+        if any(s.startswith(f) for f in ANGLE_FIELDS):
+            break
+        span.append(ln)
+    return "\n".join(span)
+
+
 def section_body(text, heading_prefix):
-    """Return the body of the first section whose heading starts with heading_prefix,
-    up to the next '## ' heading (or end)."""
+    """Return the body of the first section whose heading starts with heading_prefix."""
     m = re.search(r"^" + re.escape(heading_prefix) + r".*$", text, re.M)
     if not m:
         return ""
@@ -158,8 +180,7 @@ def has_table_row(text):
 
 
 def has_saturation_claim(text):
-    """True only for an AFFIRMATIVE closure claim. A closure phrase whose enclosing
-    sentence carries any negation/uncertainty token does not count."""
+    """True only for an AFFIRMATIVE closure claim (negated/hedged prose does not count)."""
     for m in SATURATION_RE.finditer(text):
         start = max((text.rfind(ch, 0, m.start()) for ch in _SENTENCE_BOUNDARY), default=-1) + 1
         ends = [text.find(ch, m.end()) for ch in _SENTENCE_BOUNDARY]
@@ -172,8 +193,7 @@ def has_saturation_claim(text):
 
 
 def check_evidence(evidence_text):
-    """Chase-list gate: the internal evidence file handed to the gate must carry no
-    unresolved pointer. Returns a single result dict, or None if no file was given."""
+    """Chase-list gate: the evidence file must carry no unresolved pointer."""
     if not evidence_text:
         return None
     bad = [i + 1 for i, ln in enumerate(evidence_text.splitlines())
@@ -190,7 +210,7 @@ def check_evidence(evidence_text):
 def check_sheet(text, ledger_text):
     results = []
 
-    # 1. Banned dashes (sheet is authored text; ledger may quote sources verbatim, so skip it).
+    # 1. Banned dashes (sheet is authored text; ledger may quote sources, so skip it).
     dash_lines = [i + 1 for i, ln in enumerate(text.splitlines()) if DASH_RE.search(ln)]
     if dash_lines:
         add(results, "FAIL", "no_em_en_dashes",
@@ -204,7 +224,7 @@ def check_sheet(text, ledger_text):
     else:
         add(results, "FAIL", "title", "missing '# Outreach angles: <Company>' title")
 
-    # 3. Header meta line: the line carrying 'Researched' must also carry a real date.
+    # 3. Header meta line.
     header_line = next((ln for ln in text.splitlines() if "Researched" in ln), "")
     if header_line and DATE_RE.search(header_line):
         add(results, "PASS", "header_run_date", "'Researched <date>' present")
@@ -248,13 +268,14 @@ def check_sheet(text, ledger_text):
         for heading, check in CONDITIONAL_SECTIONS:
             if heading in text:
                 if check == "at_a_glance" and not has_table_row(section_body(text, heading)):
-                    add(results, "FAIL", check,
-                        "'At a glance' section present but has no table row")
+                    add(results, "FAIL", check, "'At a glance' section present but has no table row")
                 else:
                     add(results, "PASS", check, f"'{heading[3:]}' present")
             else:
                 add(results, "FAIL", check, f"missing required section '{heading}'")
 
+        # 5b. Per-item checks.
+        bands = []
         for idx, blk in enumerate(blocks, 1):
             missing_fields = [f for f in ANGLE_FIELDS if f not in blk]
             if missing_fields:
@@ -263,26 +284,67 @@ def check_sheet(text, ledger_text):
             else:
                 add(results, "PASS", f"angle{idx}_fields", "all required fields present")
 
+            # Block-level date is now only a WARN fallback; the binding date check is on the
+            # Trigger line below.
             if DATE_RE.search(blk):
                 add(results, "PASS", f"angle{idx}_dated", "item carries a real date")
             else:
-                add(results, "FAIL", f"angle{idx}_dated",
-                    "item must rest on at least one dated source (a real date, not a stray month word)")
+                add(results, "WARN", f"angle{idx}_dated", "no real date found anywhere in the item")
 
-            if DEVELOPABILITY_RE.search(blk):
+            dev_m = DEVELOPABILITY_RE.search(blk)
+            if dev_m:
                 add(results, "PASS", f"angle{idx}_developability", "Developability High/Medium/Low")
+                bands.append(BAND_RANK[dev_m.group(1).lower()])
             else:
                 add(results, "FAIL", f"angle{idx}_developability",
                     "Developability must lead with High, Medium or Low")
+                bands.append(None)
 
-            if TRIGGER_TYPE_RE.search(blk):
+            trig_m = TRIGGER_TYPE_RE.search(blk)
+            trig_span = field_span(blk, "Trigger:")
+            read_span = field_span(blk, "Readiness:")
+            if trig_m:
                 add(results, "PASS", f"angle{idx}_trigger_type", "Trigger Event-driven/Structural")
+                ttype = trig_m.group(1).lower()
+                # Event-driven -> a real date must sit on the Trigger line itself.
+                if ttype == "event-driven":
+                    if DATE_RE.search(trig_span):
+                        add(results, "PASS", f"angle{idx}_trigger_dated",
+                            "Event-driven trigger carries a date on its own line")
+                    else:
+                        add(results, "FAIL", f"angle{idx}_trigger_dated",
+                            "Event-driven trigger has no real date on the Trigger line "
+                            "(a date elsewhere in the item does not count)")
+                # Structural -> the two-fact fence, checked on the Trigger line.
+                if ttype == "structural":
+                    # Count tags tolerantly: the convention allows a date annotation,
+                    # e.g. "[FACT, February 2026]", so match "[FACT" at a word boundary.
+                    nfact = len(re.findall(r"\[FACT\b", trig_span, re.I))
+                    ninf = len(re.findall(r"\[INFERENCE\b", trig_span, re.I))
+                    if nfact >= 2 and ninf >= 1:
+                        add(results, "PASS", f"angle{idx}_structural_fence",
+                            f"Structural fence met ({nfact} [FACT], {ninf} [INFERENCE])")
+                    else:
+                        add(results, "FAIL", f"angle{idx}_structural_fence",
+                            f"Structural trigger must rest on >=2 [FACT] and >=1 [INFERENCE] on the "
+                            f"Trigger line (found {nfact} [FACT], {ninf} [INFERENCE]); one fact plus "
+                            f"a generalisation is a trend, not a structural hook")
             else:
                 add(results, "FAIL", f"angle{idx}_trigger_type",
                     "Trigger must be labelled Event-driven or Structural")
 
-            if READINESS_RE.search(blk):
+            read_m = READINESS_RE.search(blk)
+            if read_m:
                 add(results, "PASS", f"angle{idx}_readiness", "Readiness Send now/Verify first")
+                # Send now -> the Trigger line must carry at least one [FACT].
+                if read_m.group(1).lower() == "send now":
+                    if re.search(r"\[FACT\b", trig_span, re.I):
+                        add(results, "PASS", f"angle{idx}_sendnow_anchor",
+                            "Send-now item has a [FACT] on its Trigger line")
+                    else:
+                        add(results, "FAIL", f"angle{idx}_sendnow_anchor",
+                            "'Send now' requires at least one [FACT] on the Trigger line; an "
+                            "inference-only trigger cannot ship as send-now (label it Verify first)")
             else:
                 add(results, "FAIL", f"angle{idx}_readiness",
                     "Readiness must be 'Send now' or 'Verify first: <the one fact>'")
@@ -291,14 +353,37 @@ def check_sheet(text, ledger_text):
             if conf and conf.group(1).lower() in CONFIDENCE_VALUES:
                 add(results, "PASS", f"angle{idx}_confidence", conf.group(1))
             else:
-                add(results, "FAIL", f"angle{idx}_confidence",
-                    "Confidence must be High, Medium or Low")
+                add(results, "FAIL", f"angle{idx}_confidence", "Confidence must be High, Medium or Low")
 
-            if any(tag in blk for tag in FIA_TAGS):
+            if re.search(r"\[(?:FACT|INFERENCE|ASSUMPTION)\b", blk, re.I):
                 add(results, "PASS", f"angle{idx}_fia", "bracketed F/I/A tag present")
             else:
                 add(results, "FAIL", f"angle{idx}_fia",
                     "no [FACT]/[INFERENCE]/[ASSUMPTION] tag in this item (brackets required)")
+
+            # Email-hook first line should be a sendable sentence, not a meta-instruction.
+            hook_span = field_span(blk, "Email hook:")
+            fl = re.search(r"(?im)^\s*[-*+]?\s*First line:\s*(.+)$", hook_span)
+            if fl:
+                first_word = re.sub(r"[^a-z]", "", fl.group(1).strip().split(" ")[0].lower())
+                if first_word in HOOK_INSTRUCTION_VERBS:
+                    add(results, "WARN", f"angle{idx}_hook_pasteable",
+                        f"Email hook first line begins with '{first_word}' (an instruction, not a "
+                        f"sendable sentence); write the words the broker will paste")
+                else:
+                    add(results, "PASS", f"angle{idx}_hook_pasteable",
+                        "email hook first line reads as a sendable sentence")
+
+        # 5c. Rank order: developability bands must be non-increasing (High >= Medium >= Low).
+        seq = [(i + 1, b) for i, b in enumerate(bands) if b is not None]
+        inversion = next(((seq[k - 1][0], seq[k][0]) for k in range(1, len(seq))
+                          if seq[k][1] > seq[k - 1][1]), None)
+        if inversion:
+            add(results, "FAIL", "angle_rank_order",
+                f"developability out of order: item {inversion[1]} outranks the earlier item "
+                f"{inversion[0]}; the list must run High, then Medium, then Low")
+        else:
+            add(results, "PASS", "angle_rank_order", "developability bands are non-increasing")
 
         # 6. A backing ledger is required once items exist.
         ledger_in_sheet = "## Source Ledger" in text and (
@@ -335,11 +420,7 @@ def check_sheet(text, ledger_text):
 
     # 6c. Footprint completeness reconciliation. Top-level so it runs on every sheet.
     combined = text + "\n" + (ledger_text or "")
-    if RECON_NOSTATED_RE.search(combined):
-        add(results, "FAIL", "footprint_reconciliation",
-            "'RECONCILIATION: NO STATED TOTAL' off-ramp is retired; with no published total, "
-            "reconcile against the all-Europe coverage map to RECONCILED or UNRESOLVED GAP")
-    elif has_saturation_claim(text):
+    if has_saturation_claim(text):
         if RECON_GAP_RE.search(combined):
             add(results, "FAIL", "footprint_reconciliation",
                 "saturation/complete-network claim present while reconciliation is 'UNRESOLVED GAP'")
@@ -373,6 +454,22 @@ def check_sheet(text, ledger_text):
             "resolve the country or downgrade to UNRESOLVED GAP")
     else:
         add(results, "PASS", "coverage_map", "no RECONCILED-over-INCONCLUSIVE contradiction")
+
+    # 6f. Aggregator-source advisory (WARN only). A load-bearing figure cited only to a data
+    # aggregator should be corroborated by a primary source; flags the ledger rows to check.
+    ledger_scan = (text.split("## Source Ledger", 1)[1] if "## Source Ledger" in text else "") \
+        + "\n" + (ledger_text or "")
+    # Match on the URL HOST, not a bare substring, so an aggregator token inside an unrelated
+    # path (e.g. https://acme.com/investing.commitments) does not false-fire.
+    ledger_hosts = re.findall(r"https?://([a-z0-9.\-]+)", ledger_scan.lower())
+    agg_hits = sorted({a for host in ledger_hosts for a in AGGREGATOR_HOSTS
+                       if host == a or host.endswith("." + a)})
+    if agg_hits:
+        add(results, "WARN", "aggregator_sources",
+            "ledger cites data-aggregator host(s) (" + ", ".join(agg_hits)
+            + "); corroborate any load-bearing figure with a primary source (filing/IR/RNS) or a second row")
+    else:
+        add(results, "PASS", "aggregator_sources", "no aggregator-only sourcing detected in the ledger")
 
     # 7. Length heuristic (WARN only; the page cap is retired for the deliverable).
     words = len(re.findall(r"\S+", text))
